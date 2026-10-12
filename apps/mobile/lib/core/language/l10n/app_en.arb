@@ -1,0 +1,22 @@
+{
+  "@@locale": "en",
+  "appTitle": "Veemon",
+  "loginTitle": "Sign in",
+  "loginEmailLabel": "Email",
+  "loginPasswordLabel": "Password",
+  "loginSubmit": "Sign in",
+  "profileTitle": "Profile",
+  "profileEmailLabel": "Email",
+  "profilePhoneLabel": "Phone",
+  "profileStatusLabel": "Status",
+  "profileLogout": "Sign out",
+  "errorNetwork": "You appear to be offline. Check your connection and try again.",
+  "errorTimeout": "The server took too long to respond. Please try again.",
+  "errorUnauthorized": "Your session has ended. Please sign in again.",
+  "errorInvalidCredentials": "Incorrect email or password.",
+  "errorRateLimited": "Too many attempts. Please wait a moment and try again.",
+  "errorInvalidEmail": "Enter a valid email address.",
+  "errorEmptyPassword": "Enter your password.",
+  "errorServer": "Something went wrong on our side. Please try again later.",
+  "errorUnexpected": "Something unexpected happened. Please try again."
+}

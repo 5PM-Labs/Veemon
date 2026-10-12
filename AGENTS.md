@@ -5,8 +5,8 @@ content as [CLAUDE.md](CLAUDE.md) — kept here for tools that look for `AGENTS.
 The authoritative, modular rules live under [`.claude/`](.claude/).
 
 This repo is a **polyglot Bun-workspace monorepo**: a Go backend (`apps/api`), a
-React + Tauri client (`apps/web`), and a LangGraph.js service (`apps/ai`), sharing
-one proto contract (`contract/`). Rules below target `apps/api` (the Go backend)
+React + Tauri client (`apps/web`), a Flutter mobile client (`apps/mobile`), and a
+LangGraph.js service (`apps/ai`), sharing one proto contract (`contract/`). Rules below target `apps/api` (the Go backend)
 unless noted; start with
 [rules/project-overview.md](.claude/rules/project-overview.md).
 
@@ -28,9 +28,29 @@ unless noted; start with
 | [commands](.claude/rules/commands.md) | Common `make` / `bun` commands |
 | [code-review-checklist](.claude/rules/code-review-checklist.md) | Pre-PR checklist |
 
+### Security & compliance — mandatory for every app
+
+| Rule | Covers |
+|------|--------|
+| [compliance-soc2](.claude/rules/compliance-soc2.md) | SOC 2 Trust Services Criteria → access control, audit log, change mgmt, availability, encryption (+ ISO 27001 crosswalk) |
+| [compliance-pdpa](.claude/rules/compliance-pdpa.md) | PDPA (SG/MY/TH) + UU PDP (ID): consent, data-subject rights, retention, cross-border, breach notification |
+| [data-classification](.claude/rules/data-classification.md) | Secret / Restricted PII / PII / Internal / Public and how each may be logged, stored, shared |
+| [api-security](.claude/rules/api-security.md) | OWASP API Security Top 10 (2023) — BOLA, mass assignment, resource limits |
+| [supply-chain-security](.claude/rules/supply-chain-security.md) | Secrets, dependency/vuln scanning, CI hardening, SBOM, release signing |
+| [mobile-security](.claude/rules/mobile-security.md) | OWASP MASVS v2 for `apps/mobile` |
+
+### Mobile — `apps/mobile` (Flutter)
+
+| Rule | Covers |
+|------|--------|
+| [flutter-architecture](.claude/rules/flutter-architecture.md) | Feature-first Clean Architecture, Cubit read/write split, injectable DI, data layer, file structure |
+| [flutter-coding-standards](.claude/rules/flutter-coding-standards.md) | freezed 3 + pattern matching, l10n, theme-only colors, `Either<Failure, T>`, workflow |
+| [flutter-testing](.claude/rules/flutter-testing.md) | Use case / cubit / repository tests, mockito + bloc_test |
+
 ## Agents (`.claude/agents/`)
 
 - [code-reviewer](.claude/agents/code-reviewer.md) — reviews Go changes against these rules before a PR.
+- [mobile-reviewer](.claude/agents/mobile-reviewer.md) — reviews `apps/mobile` (Flutter) changes against the Flutter + MASVS rules.
 
 ## Skills (`.claude/skills/`)
 
@@ -44,6 +64,10 @@ unless noted; start with
   panics at startup.
 - **golang-migrate is authoritative** — schema changes go through SQL migrations.
 - **Always** `go test -race ./...` for new behavior; never log secrets.
+- **SOC 2 + PDPA are mandatory** — classify new data fields, keep PII out of
+  logs/analytics, audit-log security events, never bypass CI/review.
+- **Mobile is Clean Architecture** — Widget → Cubit → UseCase → Repository →
+  DataSource; `Either<Failure, T>` below the UI; `make -C apps/mobile check`.
 - **Composition root, not `main()`** — `cmd/server`/`cmd/worker` are thin
   `fx.New(...).Run()` entry points; wiring lives in `config/fx_*.go`
   (`CommonModule`/`ServerModule`/`WorkerModule`). `apps/ai`'s `composition.ts`

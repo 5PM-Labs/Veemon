@@ -20,6 +20,7 @@
 - [ ] `apps/api` (Go backend)
 - [ ] `apps/web` (React/Tauri)
 - [ ] `apps/ai` (LangGraph.js)
+- [ ] `apps/mobile` (Flutter)
 - [ ] `packages/go-common` (shared Go infra: logging, monitoring, infra clients)
 - [ ] `packages/api-client` / `packages/tsconfig`
 - [ ] `contract/` (proto)
@@ -35,6 +36,16 @@
 - [ ] Migration is idempotent / safe to re-run (`IF NOT EXISTS`, `ON CONFLICT`, explicit guards)
 - [ ] `golang-migrate` up/down pair is present and correctly named
 
+## Security & compliance
+<!-- SOC 2 + PDPA are mandatory — see .claude/rules/compliance-soc2.md, compliance-pdpa.md, data-classification.md. Don't delete this section; mark N/A items. -->
+- [ ] New/changed data fields: class (Secret / Restricted PII / PII / Internal / Public), purpose, lawful basis — or N/A
+- [ ] PII stays out of logs, spans, metrics, analytics, crash reports, and error messages
+- [ ] PII changes covered by user data export + erasure; retention declared in the migration header
+- [ ] Object-level authorization (BOLA) and mass-assignment checked for new/changed routes
+- [ ] Security-relevant actions emit an audit event
+- [ ] New third-party service / data region: DPA + data inventory updated — or N/A
+- [ ] New dependencies justified; lockfiles committed; no CI security job skipped
+
 ## Observability
 <!-- Only if you added/changed logging, metrics, or spans — see .claude/rules/observability.md -->
 - [ ] Logs go through `logging.*` / `logger.WithContext(ctx)` — no `fmt.Println`/`log.Print`, no secrets or PII
@@ -46,6 +57,7 @@
 - [ ] `apps/api`: `make -C apps/api lint test` (golangci-lint v2 + `go test -race`)
 - [ ] `packages/go-common`: `go build ./... && go test ./...`
 - [ ] `apps/web` / `apps/ai`: `bun run typecheck && bun test`
+- [ ] `apps/mobile`: `make -C apps/mobile check` (format, `flutter analyze` = 0 issues, `flutter test`)
 - [ ] Manual testing performed (describe below)
 - [ ] Unit tests added/updated for the change
 - [ ] Integration tests added/updated (DB/storage/3rd-party boundaries)

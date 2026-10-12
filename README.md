@@ -9,6 +9,7 @@ a React desktop app, and a LangGraph.js AI service, all sharing one proto contra
 apps/api/               Go backend — Fiber REST + gRPC (Domain-Driven Design, Clean Architecture)
 apps/web/               React 19 + TanStack Router + Vite + Tauri (desktop)
 apps/ai/                LangGraph.js agent + workflow service (TypeScript, Hono)
+apps/mobile/            Flutter iOS + Android client (Clean Architecture + Cubit)
 packages/api-client/    Generated protobuf-es types + typed REST client (@veemon/api-client)
 packages/tsconfig/      Shared base tsconfig (@veemon/tsconfig)
 packages/go-common/     Shared Go infra module — logging/, monitoring/, infra/
@@ -41,7 +42,9 @@ bun run test                # go test -race (api) + bun tests (ts)
 
 **Prerequisites for specific apps:** the `web` desktop build (Tauri) needs a
 **Rust toolchain**; the browser dev flow does not. Running the `ai` agent needs a
-**model provider API key**. See `apps/web/README.md` and `apps/ai/README.md`.
+**model provider API key**. The `mobile` app needs **Flutter 3.47+** (plus the
+Android SDK / Xcode for device builds) and runs via `make -C apps/mobile …`.
+See `apps/web/README.md`, `apps/ai/README.md`, and `apps/mobile/README.md`.
 
 Everything below documents the **Go backend** (`apps/api`); run its `make`
 targets from that directory (or via the root `bun run *:api` scripts).

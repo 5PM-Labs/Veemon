@@ -1,0 +1,22 @@
+{
+  "@@locale": "id",
+  "appTitle": "Veemon",
+  "loginTitle": "Masuk",
+  "loginEmailLabel": "Email",
+  "loginPasswordLabel": "Kata sandi",
+  "loginSubmit": "Masuk",
+  "profileTitle": "Profil",
+  "profileEmailLabel": "Email",
+  "profilePhoneLabel": "Telepon",
+  "profileStatusLabel": "Status",
+  "profileLogout": "Keluar",
+  "errorNetwork": "Sepertinya Anda sedang offline. Periksa koneksi lalu coba lagi.",
+  "errorTimeout": "Server terlalu lama merespons. Silakan coba lagi.",
+  "errorUnauthorized": "Sesi Anda telah berakhir. Silakan masuk kembali.",
+  "errorInvalidCredentials": "Email atau kata sandi salah.",
+  "errorRateLimited": "Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.",
+  "errorInvalidEmail": "Masukkan alamat email yang valid.",
+  "errorEmptyPassword": "Masukkan kata sandi Anda.",
+  "errorServer": "Terjadi kesalahan di sisi kami. Silakan coba beberapa saat lagi.",
+  "errorUnexpected": "Terjadi kesalahan tak terduga. Silakan coba lagi."
+}

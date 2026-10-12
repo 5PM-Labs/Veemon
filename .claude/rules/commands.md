@@ -31,5 +31,14 @@ make seed
 make fresh-seed                             # drop, migrate, seed
 ```
 
+## Mobile (`apps/mobile`, Flutter)
+
+```bash
+make -C apps/mobile gen        # pub get + gen-l10n + build_runner
+make -C apps/mobile check      # format-check + analyze (0 issues) + test — matches CI
+make -C apps/mobile run API_BASE_URL=http://10.0.2.2:3000
+make -C apps/mobile build-apk  # compile check
+```
+
 Monorepo-wide Bun scripts (repo root): `bun run proto`, `bun run dev`,
 `bun run build`, `bun run test`. See [commands in the README](../../README.md#make-commands).

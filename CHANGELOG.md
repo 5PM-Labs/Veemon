@@ -2,6 +2,26 @@
 
 All notable changes to this boilerplate are documented here.
 
+## [Unreleased] — Compliance rules & Flutter mobile app
+
+### Added
+- **Security & compliance rules** (`.claude/rules/`): `compliance-soc2`
+  (Trust Services Criteria → engineering controls, ISO 27001 crosswalk),
+  `compliance-pdpa` (SG/MY/TH PDPA + Indonesia UU PDP), `data-classification`,
+  `api-security` (OWASP API Top 10 2023), `supply-chain-security`,
+  `mobile-security` (OWASP MASVS v2). PR template gains a *Security &
+  compliance* section; review checklist and `code-reviewer` agent extended.
+- **`apps/mobile`** — Flutter iOS + Android client, feature-first Clean
+  Architecture (Cubit, freezed 3, injectable/get_it, fpdart `Either`, go_router,
+  l10n en/id). Auth feature end-to-end against the Go API (login, session
+  restore via `/auth/me`, logout), token in secure storage, Android/iOS
+  network + backup hardening. Rules `flutter-architecture`,
+  `flutter-coding-standards`, `flutter-testing`; `mobile-reviewer` agent; CI
+  `mobile` job (gen, format, analyze, test).
+
+### Changed
+- `security.md` A09 example no longer logs a raw email (PII).
+
 ## [Unreleased] — Reliability & Security Hardening
 
 A comprehensive hardening pass across correctness, security, reliability,
