@@ -7,7 +7,7 @@
 # ../../packages/go-common` — that sibling module must be inside the build
 # context. The image preserves the same apps/api <-> packages/go-common
 # relative layout as the source tree so the replace path still resolves.
-FROM golang:1.25.12-alpine AS builder
+FROM golang:1.26.9-alpine AS builder
 
 WORKDIR /app
 

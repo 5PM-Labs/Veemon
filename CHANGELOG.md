@@ -21,6 +21,19 @@ All notable changes to this boilerplate are documented here.
 
 ### Changed
 - `security.md` A09 example no longer logs a raw email (PII).
+- **Dependencies updated across all apps** (minor/patch only, no majors):
+  - Go toolchain **1.25.12 → 1.26.9** (CI, release, Dockerfile, `go.mod`).
+    Go 1.25 is out of support since Go 1.27, `validator` v10.30.5 requires
+    Go ≥ 1.26, and go1.26.9 fixes a `net/http` vuln that's unfixed on 1.25.
+  - `apps/api` + `packages/go-common`: fiber v3.6.0, grpc v1.84.0, otel
+    v1.47.0 (incl. OTLP exporters), golang-migrate v4.20.1, x/crypto v0.58.0,
+    amqp091-go v1.15.0, gorm postgres v1.6.3, testify v1.12.1, and more —
+    clears the govulncheck findings (otel SDK/exporters < 1.45, grpc < 1.83.1,
+    stdlib < 1.25.13).
+  - `apps/web`: react 19.3, vite 8.3, TanStack Router/Query, Tauri CLI 2.12.
+  - `apps/ai`: LangChain/LangGraph 1.x patches, hono 4.13, zod 4.6.
+  - `apps/mobile`: transitive upgrades; `freezed` 4.0.2 / `build_runner`
+    2.16.2 held back until `injectable_generator` supports the newer analyzer.
 
 ## [Unreleased] — Reliability & Security Hardening
 

@@ -7,7 +7,7 @@ on:
     branches: [main, master, develop]
 
 env:
-  GO_VERSION: "1.25.12"
+  GO_VERSION: "1.26.9"
   FLUTTER_VERSION: "3.47.7"
 
 jobs:

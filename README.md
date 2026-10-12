@@ -26,7 +26,7 @@ through the typed `@veemon/api-client` — the Go server is untouched.
 ### Quickstart
 
 ```bash
-# Prerequisites: Go 1.25+, Bun 1.3+, buf (go install github.com/bufbuild/buf/cmd/buf@latest)
+# Prerequisites: Go 1.26+, Bun 1.3+, buf (go install github.com/bufbuild/buf/cmd/buf@latest)
 bun install                 # install all TS workspaces
 bun run proto               # regenerate Go + TS clients from contract/*.proto
 bun run dev                 # run api (:3000) + web (:5173) + ai (:4111) together
@@ -80,7 +80,7 @@ them.
 
 | Component | Technology |
 |-----------|------------|
-| Language | [Go 1.25](https://go.dev/) |
+| Language | [Go 1.26](https://go.dev/) |
 | Web Framework | [Go Fiber v3](https://gofiber.io/) |
 | gRPC | [google.golang.org/grpc](https://grpc.io/) |
 | ORM | [GORM](https://gorm.io/) |
@@ -222,7 +222,7 @@ git-ignored.
 
 ### Prerequisites
 
-- Go 1.25.12+ (CI and Docker use Go 1.25.12)
+- Go 1.26.9+ (CI and Docker use Go 1.26.9)
 - Docker & Docker Compose
 - Make
 
