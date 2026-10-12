@@ -67,6 +67,15 @@ void main() {
         verifyNever(tokenStorage.write(any));
       });
     }
+    test('storage failure → unexpected', () async {
+      when(remote.login(email: tEmail, password: tPassword))
+          .thenAnswer((_) async => tLoginResponse);
+      when(tokenStorage.write(tToken)).thenThrow(const StorageException());
+
+      final result = await repository.login(email: tEmail, password: tPassword);
+
+      expect(result, const Left<Failure, Object>(Failure.unexpected()));
+    });
   });
 
   group('getCurrentUser', () {
@@ -110,6 +119,13 @@ void main() {
   group('logout', () {
     test('clears the token after server revocation', () async {
       when(remote.logout()).thenAnswer((_) async {});
+
+      expect(await repository.logout(), const Right<Failure, Unit>(unit));
+      verify(tokenStorage.clear()).called(1);
+    });
+
+    test('treats an already-expired token (401) as logged out', () async {
+      when(remote.logout()).thenThrow(const ApiException(statusCode: 401));
 
       expect(await repository.logout(), const Right<Failure, Unit>(unit));
       verify(tokenStorage.clear()).called(1);

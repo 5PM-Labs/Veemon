@@ -21,7 +21,8 @@ Future<Either<Failure, T>> guard<T>(
       NetworkException() => const Failure.network(),
       RequestTimeoutException() => const Failure.timeout(),
       ApiException() => onApiException?.call(e) ?? mapApiException(e),
-      MalformedResponseException() => const Failure.unexpected(),
+      MalformedResponseException() ||
+      StorageException() => const Failure.unexpected(),
     };
     // Developer log only: type + status, never request/response bodies.
     developer.log(

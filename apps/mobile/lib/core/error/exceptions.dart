@@ -31,6 +31,11 @@ final class ApiException extends AppException {
   String toString() => 'ApiException($statusCode, code: $code)';
 }
 
+/// Secure on-device storage (Keychain / Keystore) failed to persist data.
+final class StorageException extends AppException {
+  const StorageException();
+}
+
 /// The server answered 2xx but the body didn't match the contract.
 final class MalformedResponseException extends AppException {
   const MalformedResponseException(this.reason);

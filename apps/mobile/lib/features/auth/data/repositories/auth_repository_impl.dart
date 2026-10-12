@@ -50,6 +50,10 @@ class AuthRepositoryImpl implements AuthRepository {
     final result = await guard(_remote.logout);
     // Always clear locally, even if revocation failed (MASVS-STORAGE).
     await _tokenStorage.clear();
-    return result.map((_) => unit);
+    return switch (result) {
+      // 401: the token was already expired/revoked — the logout goal is met.
+      Left(value: UnauthorizedFailure()) => const Right(unit),
+      _ => result.map((_) => unit),
+    };
   }
 }
