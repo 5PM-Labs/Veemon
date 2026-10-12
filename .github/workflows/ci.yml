@@ -7,7 +7,8 @@ on:
     branches: [main, master, develop]
 
 env:
-  GO_VERSION: "1.25.12"
+  GO_VERSION: "1.26.9"
+  FLUTTER_VERSION: "3.47.7"
 
 jobs:
   lint:
@@ -165,6 +166,35 @@ jobs:
 
       - name: Build web (browser bundle)
         run: bun run build:web
+
+  mobile:
+    name: Mobile (Flutter)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Generate code (l10n + build_runner)
+        run: make gen
+
+      - name: Format check
+        run: make format-check
+
+      - name: Analyze (zero issues)
+        run: make analyze
+
+      - name: Test
+        run: make test
 
   docker:
     name: Docker Build

@@ -2,6 +2,39 @@
 
 All notable changes to this boilerplate are documented here.
 
+## [Unreleased] — Compliance rules & Flutter mobile app
+
+### Added
+- **Security & compliance rules** (`.claude/rules/`): `compliance-soc2`
+  (Trust Services Criteria → engineering controls, ISO 27001 crosswalk),
+  `compliance-pdpa` (SG/MY/TH PDPA + Indonesia UU PDP), `data-classification`,
+  `api-security` (OWASP API Top 10 2023), `supply-chain-security`,
+  `mobile-security` (OWASP MASVS v2). PR template gains a *Security &
+  compliance* section; review checklist and `code-reviewer` agent extended.
+- **`apps/mobile`** — Flutter iOS + Android client, feature-first Clean
+  Architecture (Cubit, freezed 3, injectable/get_it, fpdart `Either`, go_router,
+  l10n en/id). Auth feature end-to-end against the Go API (login, session
+  restore via `/auth/me`, logout), token in secure storage, Android/iOS
+  network + backup hardening. Rules `flutter-architecture`,
+  `flutter-coding-standards`, `flutter-testing`; `mobile-reviewer` agent; CI
+  `mobile` job (gen, format, analyze, test).
+
+### Changed
+- `security.md` A09 example no longer logs a raw email (PII).
+- **Dependencies updated across all apps** (minor/patch only, no majors):
+  - Go toolchain **1.25.12 → 1.26.9** (CI, release, Dockerfile, `go.mod`).
+    Go 1.25 is out of support since Go 1.27, `validator` v10.30.5 requires
+    Go ≥ 1.26, and go1.26.9 fixes a `net/http` vuln that's unfixed on 1.25.
+  - `apps/api` + `packages/go-common`: fiber v3.6.0, grpc v1.84.0, otel
+    v1.47.0 (incl. OTLP exporters), golang-migrate v4.20.1, x/crypto v0.58.0,
+    amqp091-go v1.15.0, gorm postgres v1.6.3, testify v1.12.1, and more —
+    clears the govulncheck findings (otel SDK/exporters < 1.45, grpc < 1.83.1,
+    stdlib < 1.25.13).
+  - `apps/web`: react 19.3, vite 8.3, TanStack Router/Query, Tauri CLI 2.12.
+  - `apps/ai`: LangChain/LangGraph 1.x patches, hono 4.13, zod 4.6.
+  - `apps/mobile`: transitive upgrades; `freezed` 4.0.2 / `build_runner`
+    2.16.2 held back until `injectable_generator` supports the newer analyzer.
+
 ## [Unreleased] — Reliability & Security Hardening
 
 A comprehensive hardening pass across correctness, security, reliability,

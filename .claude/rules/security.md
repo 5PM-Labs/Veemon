@@ -196,8 +196,9 @@ func validateUpload(file multipart.File, expectedHash string) error {
 
 ```go
 // ✓ Good: Log security events
+// Identify by user_id / a keyed email hash — never the raw email (PII, see data-classification.md)
 logger.Warn("failed login attempt",
-    zap.String("email", email),
+    zap.String("email_hash", hashForLog(email)),
     zap.String("ip", c.IP()),
     zap.String("user_agent", c.Get("User-Agent")),
 )

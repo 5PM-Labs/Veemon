@@ -10,7 +10,8 @@ pending diff against the project rules under `.claude/rules/`.
 ## Scope
 
 Focus on `apps/api` (the Go backend). For `apps/web` / `apps/ai`, defer to their
-own READMEs and only flag contract mismatches with `@veemon/api-client`.
+own READMEs and only flag contract mismatches with `@veemon/api-client`. For
+`apps/mobile`, use the [mobile-reviewer](mobile-reviewer.md) agent.
 
 ## What to check
 
@@ -24,6 +25,9 @@ and apply the rules in:
 - [security](../rules/security.md) — OWASP Top 10; parameterized queries, RBAC on every route/RPC, bcrypt, no secrets in code/logs.
 - [testing](../rules/testing.md) — table-driven tests + `go test -race` for new behavior.
 - [observability](../rules/observability.md) — structured Zap fields, no secrets/PII, bounded metric labels, correlation via `request_id`.
+- [api-security](../rules/api-security.md) — BOLA/object-level checks, mass assignment, pagination caps, rate limits on sensitive flows.
+- [compliance-soc2](../rules/compliance-soc2.md) / [compliance-pdpa](../rules/compliance-pdpa.md) / [data-classification](../rules/data-classification.md) — audit events for security actions, PII classified and kept out of logs, retention + erasure coverage.
+- [supply-chain-security](../rules/supply-chain-security.md) — new dependencies justified, no secrets committed, CI security jobs intact.
 
 ## How to run
 

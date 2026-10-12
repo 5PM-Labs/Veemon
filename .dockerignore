@@ -37,6 +37,7 @@ GO_FIBER_DDD_BOILERPLATE.md
 node_modules/
 apps/ai/
 apps/web/
+apps/mobile/
 packages/api-client/
 packages/tsconfig/
 **/src-tauri/target/
