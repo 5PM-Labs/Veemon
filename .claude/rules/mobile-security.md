@@ -1,3 +1,8 @@
+---
+paths:
+  - "apps/mobile/**"
+---
+
 # Mobile Security (OWASP MASVS v2) — `apps/mobile`
 
 The Flutter app runs on a device we don't control: assume it is rooted,

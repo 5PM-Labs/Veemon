@@ -13,7 +13,12 @@ Work through the *Mobile* and *Security & compliance* sections of
 [`code-review-checklist.md`](../rules/code-review-checklist.md) and apply:
 
 - [flutter-architecture](../rules/flutter-architecture.md) — layer direction, domain purity, no repo→repo / cubit→cubit deps, read vs write cubits, injectable scopes, DTOs mirror the proto, `guard()` in repositories.
-- [flutter-coding-standards](../rules/flutter-coding-standards.md) — freezed 3 sealed/abstract + `switch` patterns, l10n, theme colors, private widget classes, `context.mounted`, specific `Failure` types, never-hidden errors.
+- [flutter-state-management](../rules/flutter-state-management.md) — cubits depend on use cases only, read vs write cubits, sealed freezed states + exhaustive `switch`, one terminal state per async action, re-entry guard, `close()` cleanup.
+- [flutter-ui](../rules/flutter-ui.md) — private widget classes, `const`, theme colors, `context.l10n` (en + id in sync), `context.mounted`, accessibility (tap targets, tooltips, text scaling), list/image performance.
+- [flutter-error-handling](../rules/flutter-error-handling.md) — `Either` below the UI, `guard()` in repositories only, specific `Failure` types, localized messages, never-hidden errors, no PII in logs.
+- [flutter-navigation](../rules/flutter-navigation.md) — `AppRoutes` constants, auth via `redirect`, validated deep-link params.
+- [flutter-release](../rules/flutter-release.md) — config through `AppConfig` only, native hardening intact, permissions justified.
+- [flutter-coding-standards](../rules/flutter-coding-standards.md) — analyzer clean, naming, imports, Dart idioms, generated files untouched.
 - [flutter-testing](../rules/flutter-testing.md) — use case / cubit / repository tests for new behavior, success + failure paths, synthetic data.
 - [mobile-security](../rules/mobile-security.md) — secure storage only, no secrets in `--dart-define`, HTTPS, manifest/Info.plist hardening, no PII in logs/analytics.
 - [compliance-pdpa](../rules/compliance-pdpa.md) / [data-classification](../rules/data-classification.md) — consent before tracking, minimization.

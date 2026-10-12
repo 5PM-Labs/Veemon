@@ -1,3 +1,8 @@
+---
+paths:
+  - "apps/mobile/**"
+---
+
 # Flutter Testing (`apps/mobile`)
 
 ## What to test (priority order)
@@ -31,10 +36,58 @@ Skip low-value tests of trivial DTO getters and pixel-level widget trees.
   ```
 - Cover success **and** each failure path; `verify` side effects and
   `verifyZeroInteractions` when validation must short-circuit.
-- No `Future.delayed` / real timers — use `fake_async` (`async.elapse`).
+- No `Future.delayed` / real timers — use `fake_async` (`async.elapse`;
+  add it with `flutter pub add --dev fake_async` the first time it's needed).
 - **Synthetic data only** (`@example.test` emails, fake IDs) — never real
   personal data in fixtures ([compliance-pdpa](compliance-pdpa.md)).
 - One test file per source file, same path under `test/`, `_test.dart` suffix.
+
+## Widget tests — only where they pay off
+
+Worth it: a widget with real logic (conditional rendering per state, form
+wiring, a `BlocListener` that triggers navigation or another cubit). Not worth
+it: static layouts or pixel details.
+
+```dart
+testWidgets('shows the localized error for invalid credentials', (tester) async {
+  final cubit = MockLoginCubit();
+  whenListen(cubit, Stream<LoginState>.empty(),
+      initialState: const LoginState.failure(Failure.invalidCredentials()));
+
+  await tester.pumpWidget(
+    MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: BlocProvider<LoginCubit>.value(value: cubit, child: const Scaffold(body: LoginForm())),
+    ),
+  );
+
+  expect(find.text('Incorrect email or password.'), findsOneWidget);
+});
+```
+
+- **Drive state** with `bloc_test`'s `MockCubit` (`class MockLoginCubit
+  extends MockCubit<LoginState> implements LoginCubit {}`) plus `whenListen`.
+- **Assert method calls** with a small recording fake
+  (`class _RecordingLoginCubit extends Cubit<LoginState> implements LoginCubit`).
+  `MockCubit` is mocktail-based, and we standardize on mockito, so don't add
+  mocktail just for `verify`. Reference:
+  `test/features/auth/presentation/widgets/login_form_test.dart`.
+- Never hit DI or the network from a widget test.
+- Always pump with the real `AppLocalizations` delegates, so the test also
+  catches missing ARB keys.
+- Find by text/semantics/`Key`, not by widget type position.
+
+## Must-have tests per change
+
+| Change | Test |
+|--------|------|
+| New use case | success + every failure/validation branch |
+| New cubit / new state variant | `blocTest` for each transition |
+| New repository method | exception → `Failure` mapping + side effects |
+| New `Failure` subtype | `failure_message` covered (exhaustive switch compiles) + repository mapping |
+| New DI registration | still resolved by `test/core/di/service_locator_test.dart` (add the cubit there) |
+| New config key | `AppConfig` validation test |
 
 ## Run
 

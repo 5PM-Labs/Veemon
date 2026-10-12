@@ -1,3 +1,8 @@
+---
+paths:
+  - "apps/mobile/**"
+---
+
 # Flutter Architecture (`apps/mobile`)
 
 Feature-first **Clean Architecture** with Cubits, adapted from
@@ -56,6 +61,9 @@ class LoginCubit extends Cubit<LoginState> {
 - Navigation that depends on auth is a function of `SessionCubit` state in the
   router's `redirect` — screens don't push login/home themselves.
 
+Details: [flutter-state-management](flutter-state-management.md),
+[flutter-navigation](flutter-navigation.md).
+
 ## 4. Dependency injection — `injectable` + `get_it`
 
 - Annotations only; never call `getIt.registerX` by hand.
@@ -71,8 +79,11 @@ class LoginCubit extends Cubit<LoginState> {
 ## 5. Data layer
 
 - **DTOs mirror the proto wire shape** (`contract/<svc>/<svc>.proto`,
-  protojson camelCase). Proto3 omits empty strings/zero values → give such
-  fields `@Default('')` / nullable types.
+  protojson camelCase). The server marshals with `EmitUnpopulated: true`
+  (`pkg/response`), so empty strings/zeros are sent and unset messages arrive
+  as `null`; still give scalars `@Default(...)` so parsing stays tolerant.
+  **`int64`/`uint64` arrive as JSON strings** — type them `String` and parse in
+  the mapper (see the `flutter-api-endpoint` skill).
 - **`ApiClient` is the only Dio user.** It unwraps the `pkg/response` envelope
   (`{success, data, error:{code,message}}`) and throws `AppException`s.
 - **Mapping via extensions** (`dto.toEntity()`), in `data/mappers/`.

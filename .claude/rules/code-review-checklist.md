@@ -29,8 +29,11 @@
 ## Mobile (`apps/mobile`)
 
 - [ ] Layering holds: Widget → Cubit → UseCase → Repository → DataSource; domain is pure Dart ([flutter-architecture](flutter-architecture.md))
-- [ ] Below-UI APIs return `Either<Failure, T>`; failures shown to the user via `context.l10n`
-- [ ] No string literals in UI, no hardcoded colors, `context.mounted` after `await`
+- [ ] Cubits depend on use cases only; states are sealed freezed unions matched with `switch` ([flutter-state-management](flutter-state-management.md))
+- [ ] Below-UI APIs return `Either<Failure, T>`; failures shown to the user via `context.l10n` ([flutter-error-handling](flutter-error-handling.md))
+- [ ] No string literals in UI (en + id ARB in sync), no hardcoded colors, `context.mounted` after `await`, a11y labels on icon buttons ([flutter-ui](flutter-ui.md))
+- [ ] Routes use `AppRoutes`; deep-link params validated ([flutter-navigation](flutter-navigation.md))
+- [ ] DTOs match the proto wire shape (camelCase, int64 as string) ([flutter-api-endpoint skill](../skills/flutter-api-endpoint/SKILL.md))
 - [ ] DI via `injectable` annotations only; generated files not committed
 - [ ] Tokens only in `TokenStorage` (secure storage); nothing sensitive in `--dart-define` ([mobile-security](mobile-security.md))
 - [ ] `make -C apps/mobile check` passes (format, analyze = 0 issues, tests)

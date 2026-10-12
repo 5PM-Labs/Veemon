@@ -42,11 +42,19 @@ authoritative for `apps/api` (the Go backend), the Flutter rules for
 
 ### Mobile — `apps/mobile` (Flutter)
 
+Scoped with `paths: apps/mobile/**` frontmatter — they load only when working
+on mobile files.
+
 | Rule | Covers |
 |------|--------|
-| [flutter-architecture](.claude/rules/flutter-architecture.md) | Feature-first Clean Architecture, Cubit read/write split, injectable DI, data layer, file structure |
-| [flutter-coding-standards](.claude/rules/flutter-coding-standards.md) | freezed 3 + pattern matching, l10n, theme-only colors, `Either<Failure, T>`, workflow |
-| [flutter-testing](.claude/rules/flutter-testing.md) | Use case / cubit / repository tests, mockito + bloc_test |
+| [flutter-architecture](.claude/rules/flutter-architecture.md) | Feature-first Clean Architecture, layer direction, injectable DI, data layer, file structure |
+| [flutter-state-management](.claude/rules/flutter-state-management.md) | Cubits call use cases only, read vs write cubits, freezed sealed states, `switch` patterns, async transitions, narrow rebuilds |
+| [flutter-ui](.claude/rules/flutter-ui.md) | Private widget classes, `const`, theme-only colors, `context.l10n`, `context.mounted`, responsive, accessibility, forms, performance |
+| [flutter-error-handling](.claude/rules/flutter-error-handling.md) | `Either<Failure, T>`, `guard()`, specific `Failure` types, localized messages, never hide errors, logging |
+| [flutter-navigation](.claude/rules/flutter-navigation.md) | go_router constants, auth via `redirect`, `go` vs `push`, deep-link param validation |
+| [flutter-release](.claude/rules/flutter-release.md) | `--dart-define` config, versioning, release builds, signing, native config, store compliance |
+| [flutter-coding-standards](.claude/rules/flutter-coding-standards.md) | Analyzer (0 issues), naming, imports, Dart idioms, generated code, dependencies, workflow |
+| [flutter-testing](.claude/rules/flutter-testing.md) | Use case / cubit / repository / widget tests, mockito + bloc_test, must-have tests per change |
 
 ## Agents (`.claude/agents/`)
 
@@ -56,6 +64,8 @@ authoritative for `apps/api` (the Go backend), the Flutter rules for
 ## Skills (`.claude/skills/`)
 
 - [proto-routes](.claude/skills/proto-routes/SKILL.md) — add/change a REST+gRPC endpoint via the proto contract, then `make proto`.
+- [flutter-feature](.claude/skills/flutter-feature/SKILL.md) — scaffold a feature/screen/use case in `apps/mobile` (domain → data → presentation → DI → route → tests).
+- [flutter-api-endpoint](.claude/skills/flutter-api-endpoint/SKILL.md) — call a `contract/*.proto` route from `apps/mobile` (DTO wire shape, endpoint, data source, `guard()` mapping, tests).
 
 ## Quick rules of thumb
 

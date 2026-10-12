@@ -2,10 +2,12 @@
 
 iOS + Android client for the Veemon Go API (`apps/api`). Feature-first **Clean
 Architecture** with Cubit state management. The rules it follows live in
-[`.claude/rules/flutter-architecture.md`](../../.claude/rules/flutter-architecture.md),
+[`.claude/rules/flutter-*.md`](../../.claude/rules/) (start with
 [`flutter-coding-standards.md`](../../.claude/rules/flutter-coding-standards.md),
-[`flutter-testing.md`](../../.claude/rules/flutter-testing.md) and
-[`mobile-security.md`](../../.claude/rules/mobile-security.md).
+which indexes the rest) and
+[`mobile-security.md`](../../.claude/rules/mobile-security.md). To add a
+feature or a backend call, follow the `flutter-feature` and
+`flutter-api-endpoint` skills in [`.claude/skills/`](../../.claude/skills/).
 
 Not a Bun workspace member. Orchestrated with `make` like `apps/api`.
 
