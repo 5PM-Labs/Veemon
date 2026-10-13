@@ -164,6 +164,7 @@ jobs:
   frontend:
     name: Frontend (TS workspaces)
     runs-on: ubuntu-latest
+    needs: [vuln-js]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
