@@ -24,7 +24,7 @@
     "dev": "concurrently -n api,web,ai -c blue,green,magenta 'bun run dev:api' 'bun run dev:web' 'bun run dev:ai'"
   },
   "devDependencies": {
-    "concurrently": "^10.0.4",
+    "concurrently": "^10.0.6",
     "typescript": "^7.0.2"
   }
 }

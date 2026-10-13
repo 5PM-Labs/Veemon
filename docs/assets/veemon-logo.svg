@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 72" width="300" height="72"
+     role="img" aria-labelledby="veemon-title veemon-desc">
+  <title id="veemon-title">Veemon</title>
+  <desc id="veemon-desc">Veemon wordmark with a monogram mark: a rounded square holding a V.</desc>
+
+  <!--
+    Two explicit palettes so the mark reads on both GitHub themes.
+    Light fill (#1f2328) on #ffffff; dark fill (#e6edf3) on #0d1117.
+    Accent stays a mid violet (#8b7cf6 / #a99bff) that holds contrast on both.
+    No background rect: the artwork sits transparently on the page.
+  -->
+  <style>
+    .vm-mark  { fill: #1f2328; }
+    .vm-inner { fill: #8b7cf6; }
+    .vm-text  { fill: #1f2328; }
+    .vm-dim   { fill: #57606a; }
+    @media (prefers-color-scheme: dark) {
+      .vm-mark  { fill: #e6edf3; }
+      .vm-inner { fill: #a99bff; }
+      .vm-text  { fill: #e6edf3; }
+      .vm-dim   { fill: #8b949e; }
+    }
+  </style>
+
+  <!-- Monogram: rounded square with a V cut out of it -->
+  <g>
+    <rect class="vm-mark" x="4" y="10" width="52" height="52" rx="15" ry="15" />
+    <path class="vm-inner" d="M18 25 L30 46 L42 25 L35.5 25 L30 35.5 L24.5 25 Z" />
+  </g>
+
+  <!-- Wordmark, drawn as paths so no font is required -->
+  <g transform="translate(72, 0)">
+    <!-- V -->
+    <path class="vm-text" d="M4 20 L13 20 L20.5 40.5 L28 20 L37 20 L24.5 52 L16.5 52 Z" />
+    <!-- e -->
+    <path class="vm-text" d="M47.5 41.5 h-13.5 a6.5 6.5 0 0 0 6 3.6 a8.6 8.6 0 0 0 5.4 -2 l4.3 4.7 a14 14 0 0 1 -10.2 4.2 a12.6 12.6 0 0 1 -0.2 -25.2 a12.5 12.5 0 0 1 12.5 12.4 a12.4 12.4 0 0 1 -0.1 2.3 z m-13.2 -6 h7.6 a4.7 4.7 0 0 0 -7.6 0 z" />
+    <!-- m -->
+    <path class="vm-text" d="M62 20 h7 v4.4 a10.4 10.4 0 0 1 7.6 -4.4 a9.6 9.6 0 0 1 8.3 4.6 a10.8 10.8 0 0 1 8.6 -4.6 c6 0 9.5 3.8 9.5 10.6 V52 h-8 V32.6 c0 -3.1 -1.5 -4.8 -4.2 -4.8 c-3 0 -5 2 -5 5.4 V52 h-8 V32.6 c0 -3.1 -1.4 -4.8 -4.2 -4.8 c-3 0 -5.6 2 -5.6 5.4 V52 h-8 z" />
+    <!-- o -->
+    <path class="vm-text" d="M129.5 20.5 a12.9 12.9 0 1 0 0 25.8 a12.9 12.9 0 0 0 0 -25.8 z m0 8 a5.4 5.4 0 1 1 0 10.8 a5.4 5.4 0 0 1 0 -10.8 z" />
+    <!-- n -->
+    <path class="vm-text" d="M147 20 h8 v4.3 a10.6 10.6 0 0 1 7.8 -4.3 c6.1 0 10.2 4 10.2 10.8 V52 h-8 V32.8 c0 -3.2 -1.6 -4.9 -4.6 -4.9 c-3.4 0 -5.4 2.2 -5.4 5.6 V52 h-8 z" />
+  </g>
+
+  <!-- Tagline accent rule -->
+  <rect class="vm-dim" x="74" y="58" width="150" height="2" rx="1" ry="1" opacity="0.35" />
+</svg>

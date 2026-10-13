@@ -109,6 +109,27 @@ jobs:
         working-directory: packages/go-common
         run: govulncheck ./...
 
+  vuln-js:
+    name: Vulnerability Scan (JS/Bun)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # Single source of truth for accepted, unpatched advisories:
+      # .claude/rules/supply-chain-security.md
+      # Any advisory NOT in that list fails the build.
+      - name: Audit JS dependencies
+        run: bun audit --ignore=GHSA-vfj7-8cjw-p6xm
+
   build:
     name: Build (Go)
     runs-on: ubuntu-latest

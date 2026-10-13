@@ -24,6 +24,33 @@ never leak (secrets). Maps to SOC 2 CC8/CC9 and OWASP A06/A08.
 | Bun (`apps/web`, `apps/ai`, `packages/*`) | `bun.lock` (`--frozen-lockfile` in CI) | `bun audit` / OSV-Scanner |
 | Dart/Flutter (`apps/mobile`) | `pubspec.lock` | OSV-Scanner on `pubspec.lock` |
 
+`bun audit` is a CI gate (`vuln-js` job), mirroring `vuln` for Go. Advisory
+IDs listed under "Accepted risk" below are the only ones `bun audit --ignore`
+may suppress; everything else fails the build.
+
+### Accepted risk (unpatched advisories)
+
+Every entry needs: advisory ID, why no upgrade path, proof the vulnerable code
+is unreachable, owner, and re-check trigger. An entry without reachability
+proof is not accepted — it is a bug to fix.
+
+| Advisory | Path | Severity | Status |
+|----------|------|----------|--------|
+| GHSA-vfj7-8cjw-p6xm — `braces <=3.0.3`, stack exhaustion via deeply nested patterns | `workspace:@veemon/ai › awilix › fast-glob › micromatch › braces` | high | Accepted |
+
+- **No upgrade path.** `braces@3.0.3` is the latest release and still
+  vulnerable; upstream is unpatched. `awilix` only depends on `fast-glob`, so
+  this is a transitive 4-deep pin, not an `awilix` choice.
+- **Unreachable.** The DoS needs a caller passing an attacker-controlled glob
+  pattern. `braces` is reached through `awilix`'s `loadModules`, which
+  `apps/ai` never calls — `apps/ai/src/composition.ts:1` imports only
+  `createContainer`, `asValue`, and `asFunction`, so the container is wired
+  statically and no glob string ever exists. Verified:
+  `grep -rn "loadModules\|GlobWithOptions\|globPatterns" apps/ai/src` → no hits.
+- **Re-check trigger.** Remove this entry the moment either becomes true:
+  `loadModules` is used anywhere in `apps/ai`, or `braces` ships a fix
+  (then upgrade and drop the `--ignore` from the `vuln-js` job).
+
 - Add a dependency only when it pulls its weight; prefer well-maintained,
   widely used packages (check publisher, last release, open advisories,
   license). Note the reason in the PR.
