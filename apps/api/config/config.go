@@ -11,10 +11,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-// placeholderJWTSecret is the insecure value that used to ship as the default.
+// placeholderPasetoSecret is the insecure value that used to ship as the default.
 // It is rejected by Validate so a deployment cannot accidentally run with a
 // publicly known token-signing key.
-const placeholderJWTSecret = "your-secret-key-change-in-production"
+const placeholderPasetoSecret = "your-secret-key-change-in-production"
 
 type Config struct {
 	ServiceName string `mapstructure:"SERVICE_NAME"`
@@ -79,9 +79,9 @@ type Config struct {
 	RabbitMQPassword string `mapstructure:"RABBITMQ_PASSWORD"`
 	RabbitMQVHost    string `mapstructure:"RABBITMQ_VHOST"`
 
-	// JWT
-	JWTSecret     string `mapstructure:"JWT_SECRET"`
-	JWTExpiration int    `mapstructure:"JWT_EXPIRATION"`
+	// PASETO
+	PasetoSecret          string `mapstructure:"PASETO_SECRET"`
+	PasetoExpirationHours int    `mapstructure:"PASETO_EXPIRATION_HOURS"`
 
 	// CORS
 	CORSOrigins string `mapstructure:"CORS_ORIGINS"`
@@ -122,7 +122,7 @@ func New() (*Config, error) {
 	// Explicitly bind every Config key to its env var. viper's Unmarshal does
 	// NOT consult AutomaticEnv for keys it isn't otherwise aware of (e.g. those
 	// without a default and absent from the .env file), so an env-only value
-	// like JWT_SECRET would be silently dropped without this binding.
+	// like PASETO_SECRET would be silently dropped without this binding.
 	bindEnvs(v)
 
 	if err := loadRemoteEnvironment(context.Background(), v); err != nil {
@@ -206,11 +206,11 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("RABBITMQ_PASSWORD", "guest")
 	v.SetDefault("RABBITMQ_VHOST", "/")
 
-	// JWT
-	// NOTE: JWT_SECRET has no default on purpose — a shipped default is a
+	// PASETO
+	// NOTE: PASETO_SECRET has no default on purpose — a shipped default is a
 	// publicly known key. It must be provided via env/secret manager and is
 	// enforced by Config.Validate.
-	v.SetDefault("JWT_EXPIRATION", 24)
+	v.SetDefault("PASETO_EXPIRATION_HOURS", 24)
 
 	// CORS
 	v.SetDefault("CORS_ORIGINS", "*")
@@ -259,12 +259,12 @@ func (c *Config) Validate() error {
 		return fmt.Errorf("PREFORK is not supported with the embedded gRPC server; run multiple replicas to scale horizontally")
 	}
 
-	s := c.JWTSecret
+	s := c.PasetoSecret
 	switch {
 	case s == "":
-		return fmt.Errorf("JWT_SECRET is not set; generate one with `token.GenerateSecretKey` and set JWT_SECRET")
-	case s == placeholderJWTSecret:
-		return fmt.Errorf("JWT_SECRET still uses the insecure placeholder value; set a unique secret before starting")
+		return fmt.Errorf("PASETO_SECRET is not set; generate one with `token.GenerateSecretKey` and set PASETO_SECRET")
+	case s == placeholderPasetoSecret:
+		return fmt.Errorf("PASETO_SECRET still uses the insecure placeholder value; set a unique secret before starting")
 	}
 
 	// Accept a 64-char hex string (32 bytes) …
@@ -275,7 +275,7 @@ func (c *Config) Validate() error {
 	}
 	// … or a raw secret of at least 32 bytes.
 	if len(s) < 32 {
-		return fmt.Errorf("JWT_SECRET must be a 64-character hex string or at least 32 bytes (got %d bytes)", len(s))
+		return fmt.Errorf("PASETO_SECRET must be a 64-character hex string or at least 32 bytes (got %d bytes)", len(s))
 	}
 	return c.validateCORS()
 }

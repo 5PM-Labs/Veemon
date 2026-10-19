@@ -5,9 +5,12 @@
 // every REST response in the pkg/response envelope:
 //   success: { success: true, data, meta? }
 //   error:   { success: false, error: { code, message } }
-// Field names are camelCase protojson. These lean DTOs mirror the proto message
-// wire shapes; the full protobuf-es message types are exported as `proto` from
-// the package index for consumers that need them.
+// Field names are camelCase protojson. Response/message types are derived from
+// the generated protobuf-es schema (exported as `proto` from the package index),
+// so a proto change updates the client types instead of silently drifting.
+// Outgoing request types use the schema's JSON shape (ints are numbers).
+
+import * as proto from "./gen/user/user_pb.js";
 
 export class ApiError extends Error {
   constructor(
@@ -19,57 +22,25 @@ export class ApiError extends Error {
   }
 }
 
-export interface UserProfile {
-  id: string;
-  email: string;
-  name: string;
-  phone: string;
-  status: string;
-  createdAt: string;
-}
+// Message types come from the generated protobuf-es schema (contract/*.proto
+// is the single source of truth) — never hand-written copies that can drift.
+// `Omit<..., "$typeName">` drops the runtime brand from the brandless wire DTO.
+// Responses use the schema type minus 64-bit fields, because the Go side emits
+// protojson 64-bit integers as JSON *strings* (`"42"`), which the schema types
+// as bigint. Receiving them must stay a string. Incoming requests are hand-kept
+// to the JSON shapes the Go binders accept (proto3 JSON: ints are numbers,
+// field names are json_name).
+export type UserProfile = Omit<proto.UserProfile, "$typeName">;
+export type Pagination = Omit<proto.Pagination, "$typeName" | "total"> & { total: string };
+export type RegisterReq = Partial<Omit<proto.RegisterReq, "$typeName">>;
+export type RegisterRes = Omit<proto.RegisterRes, "$typeName">;
+export type LoginReq = Omit<proto.LoginReq, "$typeName">;
+export type LoginRes = Omit<proto.LoginRes, "$typeName"> & { user?: UserProfile };
+export type RefreshTokenRes = Omit<proto.RefreshTokenRes, "$typeName">;
+export type LogoutRes = Omit<proto.LogoutRes, "$typeName">;
 
-export interface Pagination {
-  page: number;
-  size: number;
-  total: number;
-  totalPages: number;
-}
-
-export interface RegisterReq {
-  email: string;
-  password: string;
-  name?: string;
-  phone?: string;
-}
-export interface RegisterRes {
-  id: string;
-  email: string;
-  name: string;
-}
-
-export interface LoginReq {
-  email: string;
-  password: string;
-}
-export interface LoginRes {
-  token: string;
-  user: UserProfile;
-}
-
-export interface RefreshTokenRes {
-  token: string;
-}
-export interface LogoutRes {
-  message: string;
-}
-
-export interface ListUsersQuery {
-  page?: number;
-  size?: number;
-  search?: string;
-  sortBy?: string;
-  sortOrder?: string;
-}
+/** Query parameters for listUsers; the server clamps page/size. */
+export type ListUsersQuery = Partial<Omit<proto.ListUsersReq, "$typeName">>;
 export interface ListUsersResult {
   users: UserProfile[];
   pagination: Pagination | undefined;
@@ -143,6 +114,8 @@ export function createApiClient(opts: ApiClientOptions) {
     login: (body: LoginReq) =>
       request<LoginRes>("POST", "/api/v1/auth/login", body, false),
 
+    // The server rotates the *presented* bearer token; RefreshTokenReq.token is
+    // accepted for proto/JSON symmetry but not required.
     refreshToken: (token: string) =>
       request<RefreshTokenRes>("POST", "/api/v1/auth/refresh", { token }),
 

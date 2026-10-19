@@ -8,7 +8,7 @@
 package user
 
 import (
-	"veemon/pkg/validation"
+	"veemon/internal/pkg/validation"
 )
 
 // Request DTOs with validation tags

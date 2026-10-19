@@ -6,5 +6,5 @@ DROP FUNCTION IF EXISTS update_updated_at_column();
 DROP INDEX IF EXISTS idx_users_deleted_at;
 DROP INDEX IF EXISTS idx_users_company_code;
 DROP INDEX IF EXISTS idx_users_status;
-DROP INDEX IF EXISTS idx_users_email;
+DROP INDEX IF EXISTS idx_users_email_unique;
 DROP TABLE IF EXISTS users;

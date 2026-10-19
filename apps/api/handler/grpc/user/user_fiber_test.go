@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"veemon/pkg/middleware"
+	"veemon/internal/pkg/middleware"
 
 	"github.com/gofiber/fiber/v3"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -48,7 +48,7 @@ func roleValidator(token string) (*middleware.AuthContext, error) {
 
 func newTestApp() *fiber.App {
 	app := fiber.New()
-	RegisterUserApiRoutes(app, stubServer{}, roleValidator)
+	RegisterUserApiRoutes(app, stubServer{}, roleValidator, nil)
 	return app
 }
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"veemon/pkg/errors"
+	"veemon/internal/pkg/errors"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"

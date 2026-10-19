@@ -41,7 +41,7 @@ var ServerModule = fx.Module("server",
 )
 
 // validateConfig fails fast on insecure/invalid security config (e.g. a
-// missing or placeholder JWT_SECRET) before anything starts serving traffic
+// missing or placeholder PASETO_SECRET) before anything starts serving traffic
 // — same invariant as the original main.go's explicit cfg.Validate() call,
 // just run as an fx.Invoke instead of a panic.
 func validateConfig(cfg *Config) error {

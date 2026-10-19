@@ -1,6 +1,6 @@
 # API Response Standards
 
-REST payloads are serialized with `protojson` via `pkg/response` helpers, so
+REST payloads are serialized with `protojson` via `internal/pkg/response` helpers, so
 `data` field names use **camelCase** (matching the proto JSON mapping).
 
 ## Success Response

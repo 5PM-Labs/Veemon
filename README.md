@@ -128,6 +128,24 @@ make -C apps/mobile check                    # format-check + analyze + test, wh
 make -C apps/mobile run                      # API_BASE_URL defaults to http://10.0.2.2:3000
 ```
 
+### Git hooks
+
+[lefthook](https://github.com/evilmartians/lefthook) (single Go binary, no Node
+dependency) runs the fast gates locally; CI remains the source of truth.
+
+```bash
+brew install lefthook      # or: go install github.com/evilmartians/lefthook@latest
+lefthook install           # writes .git/hooks/{pre-commit,pre-push}
+```
+
+| Hook | Runs | Skipped when |
+|---|---|---|
+| `pre-commit` | `gofmt` on staged Go, `dart format` on staged Dart, `bun run typecheck` | no matching staged files; `dart` not installed |
+| `pre-push` | `go vet` + `go test` in `apps/api` and `packages/go-common` | no matching pushed files |
+
+Bypass one run with `LEFTHOOK=0 git commit ...`. Heavy checks (`-race`, lint,
+Flutter analyze) intentionally live only in CI.
+
 Per-app details: [apps/api/README.md](apps/api/README.md), [apps/web/README.md](apps/web/README.md),
 [apps/ai/README.md](apps/ai/README.md), [apps/mobile/README.md](apps/mobile/README.md).
 
@@ -252,7 +270,8 @@ Where to look:
 Branch off `main`, keep commits conventional (`feat:`, `fix:`, `chore:`, `docs:`), and run
 `bun run test` and `bun run typecheck` before opening a pull request. CI runs lint, tests
 with the race detector, a vulnerability scan, and builds for every app; the reviewer rules
-live in [`.claude/rules/`](.claude/rules/).
+live in [`.claude/rules/`](.claude/rules/). Run `lefthook install` once per clone (see
+[Git hooks](#git-hooks)) to get the same fast checks before CI.
 
 ## License
 

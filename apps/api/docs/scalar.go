@@ -177,7 +177,7 @@ func GetOpenAPISpec() map[string]interface{} {
 				"post": map[string]interface{}{
 					"tags":        []string{"Auth"},
 					"summary":     "Authenticate and obtain access token",
-					"description": "Authenticates a user with email and password credentials. On success, returns a PASETO v4 access token (symmetric encryption) along with the user's profile information. The token should be included in subsequent requests via the `Authorization: Bearer <token>` header.\n\n**Token format**: `v4.local.xxxxx...` (PASETO v4 local/symmetric)\n\n**Token expiration**: configurable via `JWT_EXPIRATION` environment variable (default: 24 hours)\n\n**Invalid credentials**: returns `401 Unauthorized` with a generic error message (does not reveal whether the email exists).",
+					"description": "Authenticates a user with email and password credentials. On success, returns a PASETO v4 access token (symmetric encryption) along with the user's profile information. The token should be included in subsequent requests via the `Authorization: Bearer <token>` header.\n\n**Token format**: `v4.local.xxxxx...` (PASETO v4 local/symmetric)\n\n**Token expiration**: configurable via `PASETO_EXPIRATION_HOURS` environment variable (default: 24 hours)\n\n**Invalid credentials**: returns `401 Unauthorized` with a generic error message (does not reveal whether the email exists).",
 					"operationId": "login",
 					"requestBody": map[string]interface{}{
 						"required":    true,
@@ -218,7 +218,7 @@ func GetOpenAPISpec() map[string]interface{} {
 				"post": map[string]interface{}{
 					"tags":        []string{"Auth"},
 					"summary":     "Refresh access token",
-					"description": "Issues a new PASETO access token using the current valid token. Use this endpoint to extend the user's session without requiring re-authentication. The old token remains valid until its original expiration time (stateless — no token rotation).\n\n**When to use**: call this before the current token expires to maintain an active session.\n\n**Requires**: valid, non-expired PASETO token in the `Authorization` header.",
+					"description": "Issues a new PASETO access token using the current valid token. Use this endpoint to extend the user's session without requiring re-authentication. The presented token is revoked (jti blacklist in Redis) and a fresh one is issued, so a stolen token is only replayable until refresh replaces it.\n\n**When to use**: call this before the current token expires to maintain an active session.\n\n**Requires**: valid, non-revoked PASETO token in the `Authorization` header (a Redis-backed guard is required for revocation; without Redis this degrades to a plain re-issue).",
 					"operationId": "refreshToken",
 					"security":    []map[string][]string{{"BearerAuth": {}}},
 					"responses": map[string]interface{}{
@@ -280,7 +280,7 @@ func GetOpenAPISpec() map[string]interface{} {
 				"post": map[string]interface{}{
 					"tags":        []string{"Auth"},
 					"summary":     "Logout current session",
-					"description": "Terminates the current user session. Since PASETO tokens are stateless, this endpoint returns a success response to signal the client to discard the token. The token itself remains technically valid until its expiration time.\n\n**Client responsibility**: remove the stored token from local storage, cookies, or memory upon receiving the success response.\n\n**Note**: for server-side token revocation, consider implementing a Redis-backed token blacklist.",
+					"description": "Terminates the current user session by revoking the presented token's jti (Redis-backed), so the token stops working immediately rather than at its natural expiry.\n\n**Client responsibility**: remove the stored token from local storage, cookies, or memory upon receiving the success response.\n\n**Degradation**: without Redis the jti blacklist is unavailable and logout only signals the client to discard the token.",
 					"operationId": "logout",
 					"security":    []map[string][]string{{"BearerAuth": {}}},
 					"responses": map[string]interface{}{

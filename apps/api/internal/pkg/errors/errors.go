@@ -33,13 +33,22 @@ func (e *AppError) GRPCStatus() *status.Status {
 	return status.New(e.GRPCCode, e.Message)
 }
 
+// ErrorBody is the `error` member of the REST error envelope. It is the ONE
+// definition of that shape: FiberError (below) and the app-level ErrorHandler
+// both emit it, so a handler error and an ErrorHandler error are byte-identical.
+type ErrorBody struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+// FiberError writes the standard error envelope and is the only in-handler way
+// to produce an error response. Prefer returning the *AppError itself and
+// letting the app-level ErrorHandler serialize it; use this only where the
+// error must be written from inside a middleware.
 func (e *AppError) FiberError(c fiber.Ctx) error {
 	return c.Status(e.HTTPStatus).JSON(fiber.Map{
 		"success": false,
-		"error": fiber.Map{
-			"code":    e.Code,
-			"message": e.Message,
-		},
+		"error":   ErrorBody{Code: e.Code, Message: e.Message},
 	})
 }
 

@@ -21,7 +21,7 @@ function LoginPage() {
     setError(null);
     try {
       const res = await api.login({ email, password });
-      setToken(res.token);
+      await setToken(res.token);
       await navigate({ to: "/me" });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Login failed");

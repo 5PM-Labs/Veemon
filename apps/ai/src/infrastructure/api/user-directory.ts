@@ -16,7 +16,9 @@ export function createApiUserDirectory(api: ApiClient): UserDirectory {
           name: u.name,
           status: u.status,
         })),
-        total: res.pagination?.total,
+        // meta.total is protojson int64: a JSON string. The domain port uses a
+        // number, so parse at the adapter boundary.
+        total: res.pagination ? Number(res.pagination.total) : undefined,
       };
     },
   };

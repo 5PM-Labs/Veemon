@@ -13,7 +13,7 @@
 - [ ] Resources are properly closed (defer)
 - [ ] Every new route/RPC has an explicit auth policy (fail-closed)
 - [ ] New env keys are added to `.env.example`
-- [ ] REST responses go through `pkg/response` protojson helpers
+- [ ] REST responses go through `internal/pkg/response` protojson helpers
 
 ## Security & compliance (all apps) — SOC 2 / PDPA
 

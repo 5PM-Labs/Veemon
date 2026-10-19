@@ -16,7 +16,7 @@ The Go backend (`apps/api`) is a Go monolithic application using:
 - **gRPC** for service-to-service communication
 - **Domain-Driven Design (DDD)** with Clean Architecture
 - **GORM** for database ORM (PostgreSQL); **golang-migrate** for schema migrations (source of truth)
-- **PASETO v4** (`pkg/token`) for authentication tokens; **Redis-backed** login lockout + token revocation (`pkg/authguard`)
+- **PASETO v4** (`internal/pkg/token`) for authentication tokens; **Redis-backed** login lockout + token revocation (`internal/pkg/authguard`)
 - **Redigo** for Redis caching
 - **RabbitMQ** for message queuing (auto-reconnecting client)
 - **Zap** for structured logging

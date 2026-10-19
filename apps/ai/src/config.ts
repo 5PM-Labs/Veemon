@@ -25,6 +25,8 @@ export interface Config {
   };
   /** Where LangGraph persists thread state (enables resume + interrupts). */
   checkpointer: CheckpointerConfig;
+  /** "production" enables fail-fast checks that would be noise in dev. */
+  environment: string;
 }
 
 function toInt(value: string | undefined, fallback: number): number {
@@ -51,6 +53,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     checkpointer = { kind: "memory" };
   }
 
+  const environment = (env.NODE_ENV ?? "development").toLowerCase();
+  const serviceToken = env.API_SERVICE_TOKEN || null;
+  // In production every agent tool and workflow calls the Go API, so a missing
+  // token means every call would 401 at runtime instead of failing at boot.
+  if (environment === "production" && !serviceToken) {
+    throw new Error("API_SERVICE_TOKEN is required in production");
+  }
+
   return {
     port: toInt(env.PORT, 4111),
     anthropicApiKey: env.ANTHROPIC_API_KEY || undefined,
@@ -60,8 +70,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     },
     api: {
       baseUrl: env.API_BASE_URL ?? "http://localhost:3000",
-      serviceToken: env.API_SERVICE_TOKEN || null,
+      serviceToken,
     },
     checkpointer,
+    environment,
   };
 }

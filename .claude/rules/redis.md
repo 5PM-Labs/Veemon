@@ -24,5 +24,5 @@ if err := conn.Err(); err != nil {
 }
 ```
 
-Redis backs the login lockout + token revocation store (`pkg/authguard`); see
+Redis backs the login lockout + token revocation store (`internal/pkg/authguard`); see
 [security](security.md) A07.

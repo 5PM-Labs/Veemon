@@ -218,6 +218,41 @@ func TestListAll_Success(t *testing.T) {
 	mockRepo.AssertExpectations(t)
 }
 
+// A zero page/size (the proto3 default when the client omits the field) must
+// become page 1 / DefaultPageSize. Passing 0 through produced LIMIT 0 and a
+// division by zero when computing total pages.
+func TestListAll_DefaultsAndClampsPagination(t *testing.T) {
+	tests := []struct {
+		name     string
+		page     int
+		size     int
+		wantPage int
+		wantSize int
+	}{
+		{"omitted", 0, 0, 1, DefaultPageSize},
+		{"negative", -3, -1, 1, DefaultPageSize},
+		{"oversized", 2, 10_000, 2, MaxPageSize},
+		{"valid", 3, 25, 3, 25},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockRepo := new(MockUserRepository)
+			uc := NewUseCase(mockRepo)
+			ctx := context.Background()
+
+			mockRepo.On("FindAll", ctx, mock.MatchedBy(func(p user_repository.ListParams) bool {
+				return p.Page == tt.wantPage && p.Size == tt.wantSize
+			})).Return([]entity.User{}, int64(0), nil)
+
+			_, _, err := uc.ListAll(ctx, ListInput{Page: tt.page, Size: tt.size})
+
+			assert.NoError(t, err)
+			mockRepo.AssertExpectations(t)
+		})
+	}
+}
+
 func TestUpdateUser_Success(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	uc := NewUseCase(mockRepo)

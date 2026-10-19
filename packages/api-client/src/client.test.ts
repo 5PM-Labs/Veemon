@@ -81,6 +81,19 @@ describe("api-client", () => {
     expect(seen).toBe("");
   });
 
+  it("sends refresh as { token } (RefreshTokenReq.token)", async () => {
+    let body: unknown;
+    const c = createApiClient({
+      baseUrl: "http://x",
+      getToken: () => "t",
+      fetch: mockFetch(200, { success: true, data: { token: "new" } }, (init) => {
+        body = JSON.parse(String(init.body));
+      }),
+    });
+    await c.refreshToken("old");
+    expect(body).toEqual({ token: "old" });
+  });
+
   it("splits a list response into users + pagination", async () => {
     const c = createApiClient({
       baseUrl: "http://x",
@@ -88,11 +101,12 @@ describe("api-client", () => {
       fetch: mockFetch(200, {
         success: true,
         data: [profile],
-        meta: { page: 1, size: 10, total: 1, totalPages: 1 },
+        // protojson emits int64 as a JSON string.
+        meta: { page: 1, size: 10, total: "1", totalPages: 1 },
       }),
     });
     const res = await c.listUsers({ page: 1 });
     expect(res.users).toHaveLength(1);
-    expect(res.pagination?.total).toBe(1);
+    expect(res.pagination?.total).toBe("1");
   });
 });

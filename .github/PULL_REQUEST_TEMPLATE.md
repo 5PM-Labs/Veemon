@@ -71,7 +71,7 @@
 - [ ] No goroutine leaks; race conditions checked (`go test -race`)
 - [ ] No hardcoded credentials/secrets; new env keys added to `.env.example`
 - [ ] Every new route/RPC has an explicit auth policy (fail-closed)
-- [ ] REST responses go through `pkg/response` protojson helpers
+- [ ] REST responses go through `internal/pkg/response` protojson helpers
 - [ ] Diff is scoped to the task — no drive-by reformatting/renaming in unrelated code
 
 ## Breaking Changes

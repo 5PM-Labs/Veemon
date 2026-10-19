@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"veemon/pkg/errors"
+	"veemon/internal/pkg/errors"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -83,17 +83,12 @@ func AuthMiddleware(validator TokenValidator, config AuthConfig) fiber.Handler {
 	}
 }
 
+// GetAuthContext returns the authenticated user attached by AuthMiddleware.
+// Handlers must treat !ok as unauthenticated (401) rather than assume the
+// middleware ran, so a route wired without auth fails closed.
 func GetAuthContext(c fiber.Ctx) (*AuthContext, bool) {
 	auth, ok := c.Locals("auth").(*AuthContext)
 	return auth, ok
-}
-
-func MustGetAuthContext(c fiber.Ctx) *AuthContext {
-	auth, ok := GetAuthContext(c)
-	if !ok {
-		panic("auth context not found")
-	}
-	return auth
 }
 
 func hasAnyRole(userRoles, allowedRoles []string) bool {

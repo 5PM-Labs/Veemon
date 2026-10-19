@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ApiError } from "@veemon/api-client";
@@ -10,27 +11,41 @@ export const Route = createFileRoute("/me")({
 
 function MePage() {
   const navigate = useNavigate();
-  const hasToken = getToken() !== null;
+  // Token reads are async (Tauri store / sessionStorage), so start "unknown"
+  // until the first read settles — never render "signed in" then flip.
+  const [hasToken, setHasToken] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void getToken().then((t) => {
+      if (!cancelled) setHasToken(t !== null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const me = useQuery({
     queryKey: ["me"],
     queryFn: () => api.getMe(),
-    enabled: hasToken,
+    enabled: hasToken === true,
     retry: false,
   });
 
   const users = useQuery({
     queryKey: ["users"],
     queryFn: () => api.listUsers({ page: 1, size: 10 }),
-    enabled: hasToken,
+    enabled: hasToken === true,
     retry: false,
   });
 
-  function logout() {
-    void api.logout().catch(() => undefined);
-    clearToken();
-    void navigate({ to: "/login" });
+  async function logout() {
+    await api.logout().catch(() => undefined);
+    await clearToken();
+    await navigate({ to: "/login" });
   }
+
+  if (hasToken === null) return <p>Loading…</p>;
 
   if (!hasToken) {
     return (
@@ -51,7 +66,7 @@ function MePage() {
     return (
       <div>
         <p className="error">{msg}</p>
-        <button onClick={logout}>Back to login</button>
+        <button onClick={() => void logout()}>Back to login</button>
       </div>
     );
   }
@@ -74,7 +89,7 @@ function MePage() {
         </ul>
       )}
 
-      <button onClick={logout}>Log out</button>
+      <button onClick={() => void logout()}>Log out</button>
     </div>
   );
 }

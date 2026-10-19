@@ -10,6 +10,7 @@ function testConfig(): Config {
     model: { name: "claude-opus-4-8", maxTokens: 8192 },
     api: { baseUrl: "http://x", serviceToken: null },
     checkpointer: { kind: "memory" },
+    environment: "test",
   };
 }
 
@@ -40,7 +41,7 @@ describe("buildContainer (Awilix composition root)", () => {
         JSON.stringify({
           success: true,
           data: [{ id: "1", email: "a@b.c", name: "A", phone: "", status: "active", createdAt: "" }],
-          meta: { page: 2, size: 5, total: 10, totalPages: 2 },
+          meta: { page: 2, size: 5, total: "10", totalPages: 2 },
         }),
         { headers: { "Content-Type": "application/json" } },
       )) as unknown as typeof fetch;

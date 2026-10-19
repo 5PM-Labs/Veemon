@@ -4,7 +4,7 @@ The Go equivalent of the "while-coding" observability checklist: what to log
 (and what not to), what shape a log takes, and what actually deserves a metric
 or a manual span. Logging is [`veemon-common/logging`](../../packages/go-common/logging)
 (Zap); tracing is automatic per-request via
-[`pkg/middleware/tracing.go`](../../apps/api/pkg/middleware/tracing.go) + gorm's
+[`internal/pkg/middleware/tracing.go`](../../apps/api/internal/pkg/middleware/tracing.go) + gorm's
 OTel plugin + `otelgrpc`; metrics are Prometheus via
 [`veemon-common/monitoring/metrics`](../../packages/go-common/monitoring/metrics).
 Paths below are relative to `apps/api/` unless prefixed `packages/`.
@@ -23,9 +23,9 @@ yourself. When writing code:
 
 - Use `veemon-common/logging` — package-level `logging.Info/Warn/Error/Debug/With(...)`,
   or `logger.WithContext(ctx)` on an injected `*logging.Logger` (adds `trace_id`/`span_id`
-  when a span is active, via `pkg/logger`'s OTel integration). Never `fmt.Println`,
+  when a span is active, via `internal/pkg/logger`'s OTel integration). Never `fmt.Println`,
   `log.Print`, or writing straight to `os.Stdout`.
-- **Why (not style):** `LoggerMiddleware` (`pkg/middleware/logger.go`) already logs every
+- **Why (not style):** `LoggerMiddleware` (`internal/pkg/middleware/logger.go`) already logs every
   request with `request_id`/`trace_id`/`span_id` attached — a raw `fmt.Println` bypasses
   that correlation entirely and can't be filtered by request or trace in the OTel backend.
 - **Enforced by:** code review (see `code-review-checklist.md`) — there's no
@@ -48,7 +48,7 @@ yourself. When writing code:
   or a metric instead.
 - Routine success confirmations the request-logging middleware already covers.
 - **PII** — emails, full user records, doctor/patient-style personal data.
-- **Secrets** — `JWT_SECRET`, DB DSNs, Redis/RabbitMQ credentials, PASETO keys, tokens.
+- **Secrets** — `PASETO_SECRET`, DB DSNs, Redis/RabbitMQ credentials, PASETO keys, tokens.
 - **Raw request/response bodies** — log status + a short reason, never the body.
 
 ## Log shape
@@ -84,7 +84,7 @@ logging.Error(fmt.Sprintf("failed to create user %s: %v", email, err))
 
 ## Tracing — you barely touch it
 
-Already automatic: HTTP via `TracingMiddleware` (`pkg/middleware/tracing.go` — one span
+Already automatic: HTTP via `TracingMiddleware` (`internal/pkg/middleware/tracing.go` — one span
 per request, named by route pattern, correlated to `request_id`), gRPC via
 `otelgrpc.NewServerHandler()` (`config/bootstrap.go`), and every GORM query via
 `gorm.io/plugin/opentelemetry`. Open a **manual span** only for a notable internal stage
@@ -96,7 +96,7 @@ HTTP and gRPC paths is already automatic; for a manual span, call
 
 ## Correlation (one line)
 
-`request_id` is the shared key: set by `RequestIDMiddleware` (`pkg/middleware/requestid.go`),
+`request_id` is the shared key: set by `RequestIDMiddleware` (`internal/pkg/middleware/requestid.go`),
 attached to the HTTP span as the `request.id` attribute (`tracing.go`), and logged as
 `request_id` by `LoggerMiddleware` alongside `trace_id`/`span_id` — filter any backend by
 `request_id` to join that request's logs, trace, and (if labeled) metric.

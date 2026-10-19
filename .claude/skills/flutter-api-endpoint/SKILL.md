@@ -23,10 +23,10 @@ For the RPC, note:
   and types.
 
 The server marshals with `protojson.MarshalOptions{EmitUnpopulated: true}`
-(`apps/api/pkg/response/response.go`): empty strings and zeros **are** sent,
+(`apps/api/internal/pkg/response/response.go`): empty strings and zeros **are** sent,
 and unset nested messages arrive as `null`.
 
-The Go server wraps every response in the `pkg/response` envelope
+The Go server wraps every response in the `internal/pkg/response` envelope
 `{success, data, meta?}` / `{success:false, error:{code,message}}`.
 `ApiClient` unwraps it and hands you `data`.
 
