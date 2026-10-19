@@ -46,7 +46,7 @@ Health and admin endpoints are on the REST port: `/health`, `/ready`, `/metrics`
 
 ### Configuration
 
-Config is read by Viper (`config/config.go`). Every key is bound explicitly to its environment variable, so env-only overrides work. `JWT_SECRET`, `JWT_EXPIRATION`, and the connection settings are all read from the process environment or the `.env` file.
+Config is read by Viper (`config/config.go`). Every key is bound explicitly to its environment variable, so env-only overrides work. `PASETO_SECRET`, `PASETO_EXPIRATION_HOURS`, and the connection settings are all read from the process environment or the `.env` file.
 
 Optional: load secrets from Infisical at startup (`config/infisical.go`), or run the process under the Infisical CLI with `make infisical-run` (`INFISICAL_ENV`, `INFISICAL_PATH` are Makefile variables).
 
@@ -184,7 +184,7 @@ To add an endpoint: add the RPC plus its `veemon.route` option, run `make -C app
 
 ## Authentication
 
-Tokens are **PASETO v4 local (symmetric, encrypted)** — not JWT. See `pkg/token/token.go`.
+Tokens are **PASETO v4 local (symmetric, encrypted)** — not JWT. See `internal/pkg/token/token.go`.
 
 | Function | Purpose |
 |----------|---------|
@@ -203,7 +203,7 @@ Authorization: Bearer v4.local.xxxxx...
 
 ### Revocation and lockout
 
-`pkg/authguard/authguard.go` backs two concerns in Redis:
+`internal/pkg/authguard/authguard.go` backs two concerns in Redis:
 
 | Function | Redis key |
 |----------|-----------|
@@ -218,16 +218,16 @@ Authorization: Bearer v4.local.xxxxx...
 Auth is never implicit:
 
 - REST routes read their policy from the generated `AuthConfig`. `NeedAuth: false` is an explicit statement that the route is public.
-- gRPC uses `middleware.GRPCAuthInterceptor(tokenValidator, pb_user.UserApiAuthConfig)`. A method name absent from the map is **denied** with `no auth policy configured for method` (`pkg/middleware/grpc_auth.go`) rather than served unauthenticated.
+- gRPC uses `middleware.GRPCAuthInterceptor(tokenValidator, pb_user.UserApiAuthConfig)`. A method name absent from the map is **denied** with `no auth policy configured for method` (`internal/pkg/middleware/grpc_auth.go`) rather than served unauthenticated.
 - gRPC reflection is registered only when `ENVIRONMENT != "production"`.
 
 Startup also refuses to boot on weak configuration rather than running insecurely — see [Security](#security).
 
-Run `examples/paseto_authenticated_flow.go` for an end-to-end issue → call → validate walkthrough.
+Run `go run ./examples` (from `apps/api`) for an end-to-end issue → call → validate walkthrough.
 
 ## Response format
 
-Envelopes live in `pkg/response/response.go`. Protobuf payloads are serialized with `protojson` using `UseProtoNames: false, EmitUnpopulated: true`, so REST output uses the contract's `json_name` (camelCase) fields and unpopulated fields are emitted for a stable shape.
+Envelopes live in `internal/pkg/response/response.go`. Protobuf payloads are serialized with `protojson` using `UseProtoNames: false, EmitUnpopulated: true`, so REST output uses the contract's `json_name` (camelCase) fields and unpopulated fields are emitted for a stable shape.
 
 Success (single message, HTTP 200):
 
@@ -263,7 +263,7 @@ Helpers: `SuccessProto`, `CreatedProto`, `SuccessProtoList`, and `BadRequest` / 
 
 ## Rate limiting
 
-`pkg/middleware/ratelimit.go` wraps Fiber v3's `middleware/limiter`.
+`internal/pkg/middleware/ratelimit.go` wraps Fiber v3's `middleware/limiter`.
 
 Defaults from `DefaultRateLimitConfig()`:
 
@@ -456,7 +456,7 @@ Run these from `apps/api`.
 What the code actually enforces:
 
 - **Fail-closed auth.** No policy means denied, not open — see [Authentication](#authentication).
-- **Startup config validation** (`config/config.go`) refuses to start when: `JWT_SECRET` is unset; `JWT_SECRET` is still the placeholder `your-secret-key-change-in-production`; `JWT_SECRET` is not a 64-char hex string or at least 32 bytes; `CORS_ORIGINS` is `*` in production; or `PREFORK` is enabled (unsupported with the embedded gRPC server).
+- **Startup config validation** (`config/config.go`) refuses to start when: `PASETO_SECRET` is unset; `PASETO_SECRET` is still the placeholder `your-secret-key-change-in-production`; `PASETO_SECRET` is not a 64-char hex string or at least 32 bytes; `CORS_ORIGINS` is `*` in production; or `PREFORK` is enabled (unsupported with the embedded gRPC server).
 - **Weak PASETO keys rejected.** `NewTokenService` errors on a secret that cannot yield a secure 32-byte key instead of padding it.
 - **Password hashing** with `golang.org/x/crypto/bcrypt` at `bcrypt.DefaultCost` (`app/usecase/user/user_usecase.go`). Login compares against a dummy hash for unknown users so response timing does not reveal whether an account exists.
 - **Login lockout and token revocation** in Redis — see [Authentication](#authentication).
@@ -486,7 +486,7 @@ apps/api/
 ├── app/usecase/user/    business rules
 ├── repository/user_repository/  GORM queries
 ├── entity/user.go       plain structs
-├── pkg/
+├── internal/pkg/
 │   ├── token/           PASETO v4 issue/verify
 │   ├── authguard/       Redis lockout + revocation
 │   ├── middleware/      auth, ratelimit, tracing, requestid, timeout, recovery, logger, grpc_*
@@ -496,7 +496,7 @@ apps/api/
 ├── migrations/          NNNNNN_name.{up,down}.sql
 ├── database/            migrate driver and seeds/
 ├── docs/scalar.go       Scalar UI + OpenAPI spec
-├── examples/            PASETO authenticated flow example
+├── examples/            PASETO authenticated flow example (not part of the build)
 ├── clients/             generated API clients
 ├── .env.example
 └── Makefile

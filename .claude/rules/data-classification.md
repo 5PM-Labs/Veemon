@@ -10,7 +10,7 @@ and [compliance-pdpa](compliance-pdpa.md) both build on this table. Applies to
 
 | Class | Examples in this repo | Who may see it |
 |-------|----------------------|----------------|
-| **Secret** | `JWT_SECRET` (PASETO key), DB DSN/password, Redis/RabbitMQ creds, Infisical tokens, model-provider API keys, access tokens, password hashes | Runtime only. No human, no log, no repo. |
+| **Secret** | `PASETO_SECRET` (PASETO key), DB DSN/password, Redis/RabbitMQ creds, Infisical tokens, model-provider API keys, access tokens, password hashes | Runtime only. No human, no log, no repo. |
 | **Restricted PII** (sensitive / "specific" personal data) | Health, biometric, financial/payment, government ID (NIK, NRIC, passport), religion, children's data, precise location | Owning user + explicitly authorized roles, on a need-to-know basis |
 | **PII** (personal data) | `email`, `name`, `phone`, IP address, device ID, `user_id` joined to any of the above | Owning user + authorized roles (`admin`, `superadmin`) |
 | **Internal** | `user_id` alone, `request_id`, `trace_id`, role names, feature flags, aggregate counts | Engineers and services |

@@ -8,6 +8,8 @@ on:
 
 env:
   GO_VERSION: "1.26.9"
+  # Pinned, not `latest`: an action release must not silently change the gate.
+  GOLANGCI_LINT_VERSION: "v2.12.2"
   FLUTTER_VERSION: "3.47.7"
 
 jobs:
@@ -30,13 +32,13 @@ jobs:
       - name: golangci-lint (apps/api)
         uses: golangci/golangci-lint-action@v8
         with:
-          version: latest
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
           working-directory: apps/api
 
       - name: golangci-lint (packages/go-common)
         uses: golangci/golangci-lint-action@v8
         with:
-          version: latest
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
           working-directory: packages/go-common
 
   test:

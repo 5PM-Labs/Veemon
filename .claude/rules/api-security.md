@@ -32,7 +32,7 @@ func (uc *UserUseCase) GetUser(ctx context.Context, id string) (*entity.User, er
 
 ## API2 — Broken Authentication
 
-- PASETO only via `pkg/token`; reject expired/revoked `jti` (`pkg/authguard`).
+- PASETO only via `internal/pkg/token`; reject expired/revoked `jti` (`internal/pkg/authguard`).
 - Login, register, refresh, and password reset carry a `rate_limit` in the proto
   route and the lockout stays enabled.
 - Error messages don't distinguish "unknown email" from "wrong password".
@@ -50,7 +50,7 @@ func (uc *UserUseCase) GetUser(ctx context.Context, id string) (*entity.User, er
 ## API4 — Unrestricted Resource Consumption
 
 - Pagination is mandatory on list RPCs; cap `size` (e.g. ≤ 100) server-side.
-- Body size limit on Fiber; request timeout middleware (`pkg/middleware/timeout.go`).
+- Body size limit on Fiber; request timeout middleware (`internal/pkg/middleware/timeout.go`).
 - Bound fan-out (worker pools, see [goroutines](goroutines.md)) and
   outbound-call cost (LLM tokens in `apps/ai`: max tokens + per-user quotas).
 

@@ -9,10 +9,10 @@ import (
 	"veemon-common/monitoring/metrics"
 	"veemon/docs"
 	pb_user "veemon/handler/grpc/user"
-	"veemon/pkg/authguard"
-	"veemon/pkg/errors"
-	"veemon/pkg/middleware"
-	"veemon/pkg/token"
+	"veemon/internal/pkg/authguard"
+	"veemon/internal/pkg/errors"
+	"veemon/internal/pkg/middleware"
+	"veemon/internal/pkg/token"
 
 	"github.com/gofiber/fiber/v3"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -33,7 +33,7 @@ import (
 
 // provideTokenService builds the PASETO token service from config.
 func provideTokenService(cfg *Config) (*token.TokenService, error) {
-	tokenService, err := token.NewTokenService(cfg.JWTSecret, cfg.JWTExpiration)
+	tokenService, err := token.NewTokenService(cfg.PasetoSecret, cfg.PasetoExpirationHours)
 	if err != nil {
 		return nil, fmt.Errorf("init token service: %w", err)
 	}
@@ -98,14 +98,21 @@ func provideGRPCServer(log *zap.Logger, tokenValidator middleware.TokenValidator
 
 // registerHTTPRoutes wires the generated REST routes (from veemon.route
 // options in the .proto) onto the Fiber app.
-func registerHTTPRoutes(app *fiber.App, userHandler pb_user.UserApiServer, tokenValidator middleware.TokenValidator) {
-	pb_user.RegisterUserApiRoutes(app, userHandler, tokenValidator)
+func registerHTTPRoutes(app *fiber.App, userHandler pb_user.UserApiServer, tokenValidator middleware.TokenValidator, redisClient *redis.Client) {
+	pb_user.RegisterUserApiRoutes(app, userHandler, tokenValidator, redisClient)
 }
 
-func registerObservabilityRoutes(app *fiber.App, cfg *Config) {
+func registerObservabilityRoutes(app *fiber.App, cfg *Config, log *zap.Logger) {
 	m := metrics.Init(cfg.ServiceName)
 	app.Use(m.Middleware())
 	app.Get("/metrics", metricsAuth(cfg.MetricsAuthToken), m.Handler())
+
+	// The docs UI publishes the full API surface; keep it out of production,
+	// same rule as gRPC reflection.
+	if cfg.Environment == "production" {
+		log.Info("API docs disabled in production")
+		return
+	}
 	docs.SetupScalar(app)
 }
 
@@ -190,7 +197,7 @@ func registerHealthChecks(app *fiber.App, cfg *Config, db *gorm.DB, redisClient 
 
 // registerObservabilityAndHealthRoutes is the fx.Invoke entry point that
 // registers /metrics, the API docs, and the /health + /ready checks.
-func registerObservabilityAndHealthRoutes(app *fiber.App, cfg *Config, db *gorm.DB, redisClient *redis.Client, rabbitClient *rabbitmq.Client) {
-	registerObservabilityRoutes(app, cfg)
+func registerObservabilityAndHealthRoutes(app *fiber.App, cfg *Config, db *gorm.DB, redisClient *redis.Client, rabbitClient *rabbitmq.Client, log *zap.Logger) {
+	registerObservabilityRoutes(app, cfg, log)
 	registerHealthChecks(app, cfg, db, redisClient, rabbitClient)
 }

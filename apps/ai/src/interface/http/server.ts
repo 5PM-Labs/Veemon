@@ -5,6 +5,19 @@ import type { Container } from "../../composition";
 import type { Graph } from "../../application/graph";
 
 type Body = Record<string, unknown>;
+
+// Request-validation failures carry their own message (safe to echo). Anything
+// else — model/API errors, stack-message leakage — is replaced with a generic
+// message; the detail is logged server-side only.
+class BadRequestError extends Error {}
+
+// Public message for a thrown value. Never sends internal error text to the
+// client unless it was raised as a deliberate validation error.
+function publicMessage(err: unknown, logger: (msg: string) => void): string {
+  if (err instanceof BadRequestError) return err.message;
+  logger(err instanceof Error ? (err.stack ?? err.message) : String(err));
+  return "internal error";
+}
 type InputMapper = (body: Body) => unknown;
 
 async function readBody(c: Context): Promise<Body> {
@@ -18,7 +31,7 @@ function threadIdOf(body: Body): string {
 // Agents are chat-shaped: { message, thread_id? } -> a LangGraph messages input.
 const agentInput: InputMapper = (body) => {
   if (typeof body.message !== "string" || body.message.trim() === "") {
-    throw new Error("`message` (non-empty string) is required");
+    throw new BadRequestError("`message` (non-empty string) is required");
   }
   return { messages: [{ role: "user", content: body.message }] };
 };
@@ -27,7 +40,7 @@ const agentInput: InputMapper = (body) => {
 const workflowInput: InputMapper = (body) =>
   body.input && typeof body.input === "object" ? body.input : {};
 
-function invokeHandler(registry: Record<string, Graph>, mapInput: InputMapper) {
+function invokeHandler(registry: Record<string, Graph>, mapInput: InputMapper, logError: (msg: string) => void) {
   return async (c: Context) => {
     const graph = registry[c.req.param("name") ?? ""];
     if (!graph) return c.json({ error: "not found" }, 404);
@@ -37,12 +50,12 @@ function invokeHandler(registry: Record<string, Graph>, mapInput: InputMapper) {
       const result = await graph.invoke(mapInput(body), { threadId });
       return c.json({ thread_id: threadId, result });
     } catch (err) {
-      return c.json({ error: String(err instanceof Error ? err.message : err) }, 400);
+      return c.json({ error: publicMessage(err, logError) }, 400);
     }
   };
 }
 
-function streamHandler(registry: Record<string, Graph>, mapInput: InputMapper) {
+function streamHandler(registry: Record<string, Graph>, mapInput: InputMapper, logError: (msg: string) => void) {
   return (c: Context) => {
     const graph = registry[c.req.param("name") ?? ""];
     if (!graph) return c.json({ error: "not found" }, 404);
@@ -59,7 +72,7 @@ function streamHandler(registry: Record<string, Graph>, mapInput: InputMapper) {
       } catch (err) {
         await stream.writeSSE({
           event: "error",
-          data: JSON.stringify({ message: String(err instanceof Error ? err.message : err) }),
+          data: JSON.stringify({ error: publicMessage(err, logError) }),
         });
       }
     });
@@ -69,6 +82,7 @@ function streamHandler(registry: Record<string, Graph>, mapInput: InputMapper) {
 // Builds the Hono app exposing every agent and workflow over REST + SSE.
 export function buildServer(container: Container): Hono {
   const app = new Hono();
+  const logError = (msg: string) => console.error("[ai] request failed:", msg);
 
   app.get("/health", (c) =>
     c.json({
@@ -78,10 +92,10 @@ export function buildServer(container: Container): Hono {
     }),
   );
 
-  app.post("/agents/:name/invoke", invokeHandler(container.agents, agentInput));
-  app.post("/agents/:name/stream", streamHandler(container.agents, agentInput));
-  app.post("/workflows/:name/invoke", invokeHandler(container.workflows, workflowInput));
-  app.post("/workflows/:name/stream", streamHandler(container.workflows, workflowInput));
+  app.post("/agents/:name/invoke", invokeHandler(container.agents, agentInput, logError));
+  app.post("/agents/:name/stream", streamHandler(container.agents, agentInput, logError));
+  app.post("/workflows/:name/invoke", invokeHandler(container.workflows, workflowInput, logError));
+  app.post("/workflows/:name/stream", streamHandler(container.workflows, workflowInput, logError));
 
   return app;
 }

@@ -9,10 +9,10 @@ import (
 	"veemon-common/monitoring/metrics"
 	"veemon/app/usecase/user"
 	pb "veemon/handler/grpc/user"
-	"veemon/pkg/authguard"
-	"veemon/pkg/errors"
-	"veemon/pkg/middleware"
-	"veemon/pkg/token"
+	"veemon/internal/pkg/authguard"
+	"veemon/internal/pkg/errors"
+	"veemon/internal/pkg/middleware"
+	"veemon/internal/pkg/token"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -145,9 +145,9 @@ func (h *userHandler) Login(ctx context.Context, req *pb.LoginReq) (*pb.LoginRes
 // this cannot refresh an already-expired token — a separate long-lived refresh
 // token (a proto change) would be needed for that.
 func (h *userHandler) RefreshToken(ctx context.Context, req *pb.RefreshTokenReq) (*pb.RefreshTokenRes, error) {
-	authCtx := getAuthFromContext(ctx)
-	if authCtx == nil {
-		return nil, errors.Unauthorized("authentication required")
+	authCtx, err := requireAuth(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	// Reload the user so a deactivated or deleted account cannot keep
@@ -185,9 +185,9 @@ func (h *userHandler) RefreshToken(ctx context.Context, req *pb.RefreshTokenReq)
 
 // GetMe returns the profile of the currently authenticated user.
 func (h *userHandler) GetMe(ctx context.Context, req *emptypb.Empty) (*pb.UserProfile, error) {
-	authCtx := getAuthFromContext(ctx)
-	if authCtx == nil {
-		return nil, errors.Unauthorized("authentication required")
+	authCtx, err := requireAuth(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	profile, err := h.userUC.GetProfile(ctx, authCtx.UserID)
@@ -212,9 +212,9 @@ func (h *userHandler) GetMe(ctx context.Context, req *emptypb.Empty) (*pb.UserPr
 // its natural expiry. Requires a Redis-backed guard; without Redis it degrades
 // to a client-side-only logout.
 func (h *userHandler) Logout(ctx context.Context, req *emptypb.Empty) (*pb.LogoutRes, error) {
-	authCtx := getAuthFromContext(ctx)
-	if authCtx == nil {
-		return nil, errors.Unauthorized("authentication required")
+	authCtx, err := requireAuth(ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	if authCtx.TokenID != "" {
@@ -255,13 +255,16 @@ func (h *userHandler) ListUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.
 		}
 	}
 
-	totalPages := (total + int64(req.Size) - 1) / int64(req.Size)
+	// Echo the page/size actually served: ValidateRequest/defaulting keeps them
+	// in bound, and the usecase would clamp anything else (see CurrentPageSize).
+	size := int32(user.CurrentPageSize(int(req.Size))) // #nosec G115 -- bounded by MaxPageSize (100)
+	totalPages := (total + int64(size) - 1) / int64(size)
 
 	return &pb.ListUsersRes{
 		Users: pbUsers,
 		Pagination: &pb.Pagination{
 			Page:       req.Page,
-			Size:       req.Size,
+			Size:       size,
 			Total:      total,
 			TotalPages: int32(totalPages), // #nosec G115 -- totalPages is bounded by pagination
 		},
@@ -342,9 +345,15 @@ func (h *userHandler) DeleteUser(ctx context.Context, req *pb.DeleteUserReq) (*p
 	}, nil
 }
 
-func getAuthFromContext(ctx context.Context) *middleware.AuthContext {
-	a, _ := middleware.AuthFromContext(ctx)
-	return a
+// requireAuth returns the authenticated user or a 401 when the request did not
+// pass through an auth middleware. Never default to "allow" on a missing
+// context: a route accidentally registered without auth must fail closed.
+func requireAuth(ctx context.Context) (*middleware.AuthContext, error) {
+	a, ok := middleware.AuthFromContext(ctx)
+	if !ok || a == nil {
+		return nil, errors.Unauthorized("authentication required")
+	}
+	return a, nil
 }
 
 // validateUserID rejects malformed identifiers before they reach the database,

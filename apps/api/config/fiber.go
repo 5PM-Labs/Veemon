@@ -1,10 +1,13 @@
 package config
 
 import (
+	stdErrors "errors"
 	"strings"
 	"time"
 
-	"veemon/pkg/middleware"
+	"veemon-common/infra/redis"
+	"veemon/internal/pkg/errors"
+	"veemon/internal/pkg/middleware"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
@@ -12,7 +15,10 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewFiber(cfg *Config, log *zap.Logger) *fiber.App {
+// NewFiber builds the HTTP app. redisClient may be nil (Redis unavailable): the
+// rate limiter then falls back to per-process counters, which is still correct
+// for a single replica but does not share limits across replicas.
+func NewFiber(cfg *Config, log *zap.Logger, redisClient *redis.Client) *fiber.App {
 	// Fiber v3 moved Prefork and DisableStartupMessage out of fiber.Config and
 	// into fiber.ListenConfig; they are applied by NewListenConfig at Listen time.
 	app := fiber.New(fiber.Config{
@@ -48,11 +54,21 @@ func NewFiber(cfg *Config, log *zap.Logger) *fiber.App {
 	app.Use(middleware.LoggerMiddleware(log))
 	// Global per-IP rate limit as a coarse abuse guard. Stricter, endpoint-
 	// specific limits are applied on auth routes during route registration.
-	app.Use(middleware.RateLimitMiddleware(middleware.DefaultRateLimitConfig()))
+	app.Use(middleware.RateLimitMiddleware(rateLimitConfig(middleware.DefaultRateLimitConfig(), redisClient, "global")))
 	app.Use(middleware.RecoveryMiddleware(log))
 	app.Use(middleware.TimeoutMiddleware(time.Duration(cfg.RequestTimeout) * time.Second))
 
 	return app
+}
+
+// rateLimitConfig attaches a shared Redis storage (when available) so the
+// counter is cluster-wide rather than per replica. scope namespaces the keys so
+// the global and per-route limiters never count into each other.
+func rateLimitConfig(cfg middleware.RateLimitConfig, redisClient *redis.Client, scope string) middleware.RateLimitConfig {
+	if redisClient != nil {
+		cfg.Storage = middleware.NewRedisStorage(redisClient, "veemon:ratelimit:"+scope+":")
+	}
+	return cfg
 }
 
 // NewListenConfig carries the settings Fiber v3 moved out of fiber.Config.
@@ -78,29 +94,44 @@ func splitAndTrim(s string) []string {
 	return out
 }
 
+// NewErrorHandler is the single place that turns a returned error into the
+// REST error envelope: *errors.AppError keeps its status/code/message, a
+// *fiber.Error keeps its status, and anything else becomes a sanitized 500
+// (the cause is logged, never sent to the client).
 func NewErrorHandler(log *zap.Logger) fiber.ErrorHandler {
 	return func(c fiber.Ctx, err error) error {
-		code := fiber.StatusInternalServerError
-		message := "Internal Server Error"
+		var appErr *errors.AppError
+		var fiberErr *fiber.Error
 
-		if e, ok := err.(*fiber.Error); ok {
-			code = e.Code
-			message = e.Message
+		switch {
+		case stdErrors.As(err, &appErr):
+			// Application errors are expected responses, not failures: log at
+			// info/warn by status instead of error level for every 4xx.
+			if appErr.HTTPStatus >= fiber.StatusInternalServerError {
+				log.Error("Request failed", zap.Int("status", appErr.HTTPStatus),
+					zap.Error(err), zap.String("path", c.Path()))
+			}
+			return appErr.FiberError(c)
+		case stdErrors.As(err, &fiberErr):
+			code := fiberErr.Code
+			if code >= fiber.StatusInternalServerError {
+				log.Error("Request failed", zap.Int("status", code),
+					zap.Error(err), zap.String("path", c.Path()))
+			}
+			return c.Status(code).JSON(fiber.Map{
+				"success": false,
+				"error":   errors.ErrorBody{Code: code, Message: fiberErr.Message},
+			})
+		default:
+			log.Error("Request failed",
+				zap.Int("status", fiber.StatusInternalServerError),
+				zap.Error(err),
+				zap.String("path", c.Path()),
+			)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"success": false,
+				"error":   errors.ErrorBody{Code: 500, Message: "Internal Server Error"},
+			})
 		}
-
-		log.Error("Request error",
-			zap.Int("status", code),
-			zap.String("message", message),
-			zap.Error(err),
-			zap.String("path", c.Path()),
-		)
-
-		return c.Status(code).JSON(fiber.Map{
-			"success": false,
-			"error": fiber.Map{
-				"code":    code,
-				"message": message,
-			},
-		})
 	}
 }

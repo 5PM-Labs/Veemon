@@ -63,7 +63,7 @@ exceptions never escape a repository.
 ## API contract
 
 DTOs mirror the protojson shapes in [`contract/user/user.proto`](../../contract/user/user.proto)
-(camelCase) and the `pkg/response` envelope (`{success, data, error:{code,message}}`).
+(camelCase) and the `internal/pkg/response` envelope (`{success, data, error:{code,message}}`).
 Paths live in `core/network/api_endpoints.dart` — keep them in sync with the
 proto `veemon.route` options.
 

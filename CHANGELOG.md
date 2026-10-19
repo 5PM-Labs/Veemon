@@ -2,6 +2,35 @@
 
 All notable changes to this boilerplate are documented here.
 
+## [Unreleased] — Hardening pass
+
+### Fixed
+- **Pagination** — omitting `page`/`size` on `GET /api/v1/users` produced
+  `LIMIT 0` and a division by zero; values are now clamped at the usecase
+  (default `size=10`, max `100`) and echoed in the response.
+- **Rate limits** — per-route and global limits use Redis storage when
+  available, so the 10/min login limit holds across replicas instead of per
+  process.
+- **Auth fail-closed** — `GetMe`/`RefreshToken`/`Logout` share one guard that
+  returns 401 when no auth context is present. Removed the panic-based
+  `MustGetAuthContext`.
+- **API docs** — the Scalar UI is no longer served when `ENVIRONMENT=production`
+  (same rule as gRPC reflection).
+- **`apps/ai`** — startup fails in production without `API_SERVICE_TOKEN`, and
+  request errors are no longer echoed to clients (validation messages only).
+- **Schema drift** — removed GORM `uniqueIndex`/`default` tags that conflicted
+  with the partial unique index in `000001`; fixed the down migration.
+
+### Changed
+- Environment variables `JWT_SECRET` → `PASETO_SECRET`,
+  `JWT_EXPIRATION` → `PASETO_EXPIRATION_HOURS`.
+- `DB_AUTO_MIGRATE` is rejected in production.
+- `protoc-gen-fiber` emits `RegisterXxxRoutes(router, srv, validator, redisClient)`.
+
+### Added
+- `lefthook.yml` — Go format/lint and Dart format on `pre-commit`, tests on
+  `pre-push`.
+
 ## [Unreleased] — Compliance rules & Flutter mobile app
 
 ### Added
@@ -44,7 +73,7 @@ concurrency, observability, packaging, and docs.
 - **Roles column now scans correctly.** `entity.User.Roles` is `pq.StringArray`
   (was a plain `[]string` mapped to `text[]`, which GORM/pgx could not scan —
   every authenticated read failed against real Postgres).
-- **Forgeable default token secret removed.** `JWT_SECRET` has no default; the
+- **Forgeable default token secret removed.** `PASETO_SECRET` has no default; the
   server refuses to start if it is empty, the old placeholder, or weaker than a
   32-byte / 64-hex key. Short secrets are rejected, not silently padded.
 

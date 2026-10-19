@@ -29,7 +29,7 @@ Applies to all apps; Go examples target `apps/api`.
   `auth { roles }` — not checked ad hoc in handlers. Object-level ownership
   checks live in the usecase (see [api-security](api-security.md) API1).
 - **Session control:** tokens are short-lived PASETO with a revocable `jti`
-  (`pkg/authguard`). Logout and password change **must** revoke. Login lockout
+  (`internal/pkg/authguard`). Logout and password change **must** revoke. Login lockout
   stays on.
 - **Production access:** no shared accounts; DB/infra access via SSO + MFA,
   time-bound, and logged. No production credentials on developer laptops or in
@@ -106,7 +106,7 @@ it receives recorded in the PR, and an entry in the subprocessor list. See
 
 ## PI1 — Processing integrity
 
-- Validate all input at the boundary (`pkg/validation`) — reject, don't coerce.
+- Validate all input at the boundary (`internal/pkg/validation`) — reject, don't coerce.
 - Multi-step writes in a transaction; message consumers are **idempotent**
   (RabbitMQ redelivers).
 - Column-scoped updates (no lost updates) — see [codebase-conventions](codebase-conventions.md).

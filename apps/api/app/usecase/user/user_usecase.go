@@ -56,6 +56,13 @@ type RegisterOutput struct {
 	Name  string
 }
 
+// Pagination bounds for ListAll. proto3 cannot distinguish "page omitted" from
+// page=0, so a zero value means "use the default" rather than "no rows".
+const (
+	DefaultPageSize = 10
+	MaxPageSize     = 100
+)
+
 type ListInput struct {
 	Page      int
 	Size      int
@@ -157,12 +164,33 @@ func (uc *useCase) GetProfile(ctx context.Context, userID string) (*entity.User,
 
 func (uc *useCase) ListAll(ctx context.Context, input ListInput) ([]entity.User, int64, error) {
 	return uc.userRepo.FindAll(ctx, user_repository.ListParams{
-		Page:      input.Page,
-		Size:      input.Size,
+		Page:      CurrentPage(input.Page),
+		Size:      CurrentPageSize(input.Size),
 		Search:    input.Search,
 		SortBy:    input.SortBy,
 		SortOrder: input.SortOrder,
 	})
+}
+
+// CurrentPage maps 0 (field omitted) to page 1 and floors negatives at 1.
+func CurrentPage(page int) int {
+	if page < 1 {
+		return 1
+	}
+	return page
+}
+
+// CurrentPageSize maps 0 (field omitted) to DefaultPageSize and caps oversized
+// requests at MaxPageSize.
+func CurrentPageSize(size int) int {
+	switch {
+	case size < 1:
+		return DefaultPageSize
+	case size > MaxPageSize:
+		return MaxPageSize
+	default:
+		return size
+	}
 }
 
 func (uc *useCase) GetUser(ctx context.Context, userID string) (*entity.User, error) {

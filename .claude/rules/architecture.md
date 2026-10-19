@@ -11,9 +11,10 @@ handler/        → Presentation layer (gRPC handler impl + generated Fiber rout
 app/usecase/    → Business logic layer (depends on the repository interface)
 repository/     → Data access layer (GORM)
 entity/         → Domain entities
-pkg/            → App-specific shared code (token, authguard, middleware,
+internal/pkg/   → App-specific shared code (token, authguard, middleware,
                   response, errors, validation) — auth/presentation-coupled,
-                  not generically reusable
+                  not generically reusable. Under `internal/` so other modules
+                  (including packages/go-common) cannot import it by accident
 migrations/     → golang-migrate SQL files (the schema source of truth)
 ```
 

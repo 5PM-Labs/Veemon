@@ -8,12 +8,13 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
 )
 
 func TestRegisterObservabilityRoutes(t *testing.T) {
 	app := fiber.New()
 
-	registerObservabilityRoutes(app, &Config{ServiceName: "test_service"})
+	registerObservabilityRoutes(app, &Config{ServiceName: "test_service"}, zap.NewNop())
 
 	metricsResp, err := app.Test(httptest.NewRequest(http.MethodGet, "/metrics", nil))
 	require.NoError(t, err)
@@ -26,7 +27,7 @@ func TestRegisterObservabilityRoutes(t *testing.T) {
 
 func TestMetricsAuthToken(t *testing.T) {
 	app := fiber.New()
-	registerObservabilityRoutes(app, &Config{ServiceName: "test_service", MetricsAuthToken: "secret"})
+	registerObservabilityRoutes(app, &Config{ServiceName: "test_service", MetricsAuthToken: "secret"}, zap.NewNop())
 
 	// Without the token, /metrics is rejected.
 	unauth, err := app.Test(httptest.NewRequest(http.MethodGet, "/metrics", nil))
@@ -39,4 +40,18 @@ func TestMetricsAuthToken(t *testing.T) {
 	authed, err := app.Test(req)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, authed.StatusCode)
+}
+
+// Production must not publish the API docs UI even though /metrics stays up.
+func TestRegisterObservabilityRoutes_HidesDocsInProduction(t *testing.T) {
+	app := fiber.New()
+	registerObservabilityRoutes(app, &Config{ServiceName: "test_service", Environment: "production"}, zap.NewNop())
+
+	metricsResp, err := app.Test(httptest.NewRequest(http.MethodGet, "/metrics", nil))
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusOK, metricsResp.StatusCode)
+
+	docsResp, err := app.Test(httptest.NewRequest(http.MethodGet, "/docs/openapi.json", nil))
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, docsResp.StatusCode)
 }

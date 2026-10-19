@@ -1,7 +1,7 @@
 package main
 
 // This file demonstrates the REST PASETO authentication flow.
-// Run with: go run examples/paseto_authenticated_flow_example.go
+// Run with: go run ./examples
 
 import (
 	"bytes"

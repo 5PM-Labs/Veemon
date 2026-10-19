@@ -1,0 +1,44 @@
+# Fast local gates. Heavy checks (go test -race, full lint, flutter analyze)
+# stay in CI; pre-push only runs what catches a broken push cheaply.
+#
+# Install once per clone: `lefthook install` (or `brew install lefthook`).
+# Skip a hook in an emergency: `LEFTHOOK=0 git commit ...`.
+pre-commit:
+  parallel: true
+  commands:
+    gofmt:
+      glob: "apps/api/**/*.go"
+      # Generated files are owned by `make proto`, not by the developer.
+      exclude:
+        - "apps/api/**/*.pb.go"
+      run: test -z "$(gofmt -l {staged_files})" || { gofmt -w {staged_files}; git add {staged_files}; }
+
+    dart-format:
+      glob: "apps/mobile/**/*.dart"
+      exclude:
+        - "apps/mobile/**/*.g.dart"
+        - "apps/mobile/**/*.freezed.dart"
+      # skip_exec: a machine without Flutter (backend-only setup) must not be
+      # blocked from committing; CI's `mobile` job still enforces formatting.
+      skip:
+        - run: "! command -v dart >/dev/null 2>&1"
+          reason: "dart not on PATH"
+      run: dart format {staged_files} && git add {staged_files}
+
+    typecheck:
+      # Also runs for package.json/bun.lock changes (dependency swaps frequently
+      # break a workspace's types without touching its .ts files).
+      glob: "apps/{web,ai}/**/*.{ts,tsx} packages/**/*.ts {package.json,bun.lock}"
+      exclude:
+        - "**/node_modules/**"
+      run: bun run typecheck
+
+pre-push:
+  commands:
+    go-test:
+      glob: "apps/api/**/*.go"
+      run: cd apps/api && go vet ./... && go test -count=1 ./...
+
+    go-common-test:
+      glob: "packages/go-common/**/*.go"
+      run: cd packages/go-common && go vet ./... && go test -count=1 ./...

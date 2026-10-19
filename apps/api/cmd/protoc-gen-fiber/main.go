@@ -6,7 +6,7 @@
 //
 // For a service Foo it emits, into <file>_fiber.pb.go:
 //
-//   - RegisterFooRoutes(router fiber.Router, srv FooServer, validator middleware.TokenValidator)
+//   - RegisterFooRoutes(router fiber.Router, srv FooServer, validator middleware.TokenValidator, redisClient *redis.Client)
 //   - FooAuthConfig — a map of gRPC full-method name to auth policy, for the
 //     gRPC auth interceptor (so gRPC and REST share one auth declaration).
 package main
@@ -25,11 +25,11 @@ import (
 // Import paths referenced by generated code.
 const (
 	fiberPkg      = protogen.GoImportPath("github.com/gofiber/fiber/v3")
-	middlewarePkg = protogen.GoImportPath("veemon/pkg/middleware")
-	responsePkg   = protogen.GoImportPath("veemon/pkg/response")
-	errorsPkg     = protogen.GoImportPath("veemon/pkg/errors")
+	middlewarePkg = protogen.GoImportPath("veemon/internal/pkg/middleware")
+	responsePkg   = protogen.GoImportPath("veemon/internal/pkg/response")
 	protoPkg      = protogen.GoImportPath("google.golang.org/protobuf/proto")
 	contextPkg    = protogen.GoImportPath("context")
+	redisPkg      = protogen.GoImportPath("veemon-common/infra/redis")
 	timePkg       = protogen.GoImportPath("time")
 	emptyFullName = "google.protobuf.Empty"
 )
@@ -136,14 +136,16 @@ func generateService(g *protogen.GeneratedFile, svc *protogen.Service) error {
 	// --- Route registration ---
 	g.P("// Register", svcName, "Routes registers all REST routes for ", svcName, " on router,")
 	g.P("// applying per-route auth and rate limiting declared in the proto.")
-	g.P("func Register", svcName, "Routes(router ", fiberRouter, ", srv ", serverType, ", validator ", tokenValidator, ") {")
+	g.P("// redisClient may be nil: per-route limits then fall back to per-process")
+	g.P("// counters instead of cluster-wide ones.")
+	g.P("func Register", svcName, "Routes(router ", fiberRouter, ", srv ", serverType, ", validator ", tokenValidator, ", redisClient *", g.QualifiedGoIdent(redisPkg.Ident("Client")), ") {")
 	for _, rt := range routes {
 		verb := fiberVerb(rt.r.GetMethod())
 		path := toFiberPath(rt.r.GetPath())
 		var mws []string
 		if rl := rt.r.GetRateLimit(); rl != nil && rl.GetMax() > 0 {
-			mws = append(mws, fmt.Sprintf("_%s_rateLimit(%d, %d*%s)",
-				svcName, rl.GetMax(), rl.GetWindowSeconds(), g.QualifiedGoIdent(timePkg.Ident("Second"))))
+			mws = append(mws, fmt.Sprintf("_%s_rateLimit(redisClient, %q, %d, %d*%s)",
+				svcName, rt.r.GetPath(), rl.GetMax(), rl.GetWindowSeconds(), g.QualifiedGoIdent(timePkg.Ident("Second"))))
 		}
 		if needAuth(rt.r) {
 			mws = append(mws, fmt.Sprintf("%s(validator, %s)",
@@ -173,21 +175,15 @@ func generateService(g *protogen.GeneratedFile, svc *protogen.Service) error {
 	g.P("}")
 	g.P()
 
-	g.P("// _", svcName, "_error renders a handler error: AppError values keep their")
-	g.P("// status/message; anything else becomes a sanitized 500.")
-	g.P("func _", svcName, "_error(c ", fiberCtx, ", err error) error {")
-	g.P("\tif appErr, ok := err.(*", g.QualifiedGoIdent(errorsPkg.Ident("AppError")), "); ok {")
-	g.P("\t\treturn appErr.FiberError(c)")
-	g.P("\t}")
-	g.P("\treturn ", g.QualifiedGoIdent(responsePkg.Ident("InternalError")), "(c, 500, \"internal server error\")")
-	g.P("}")
-	g.P()
-
 	g.P("// _", svcName, "_rateLimit builds a fixed-window per-IP limiter middleware.")
-	g.P("func _", svcName, "_rateLimit(max int, window ", g.QualifiedGoIdent(timePkg.Ident("Duration")), ") ", fiberHandler, " {")
+	g.P("// Keys are scoped to the route so two routes never share a counter.")
+	g.P("func _", svcName, "_rateLimit(redisClient *", g.QualifiedGoIdent(redisPkg.Ident("Client")), ", route string, max int, window ", g.QualifiedGoIdent(timePkg.Ident("Duration")), ") ", fiberHandler, " {")
 	g.P("\tcfg := ", g.QualifiedGoIdent(middlewarePkg.Ident("DefaultRateLimitConfig")), "()")
 	g.P("\tcfg.Max = max")
 	g.P("\tcfg.Duration = window")
+	g.P("\tif redisClient != nil {")
+	g.P("\t\tcfg.Storage = ", g.QualifiedGoIdent(middlewarePkg.Ident("NewRedisStorage")), "(redisClient, \"veemon:ratelimit:route:\"+route+\":\")")
+	g.P("\t}")
 	g.P("\treturn ", g.QualifiedGoIdent(middlewarePkg.Ident("RateLimitMiddleware")), "(cfg)")
 	g.P("}")
 	g.P()
@@ -230,7 +226,7 @@ func generateHandler(g *protogen.GeneratedFile, svcName string, m *protogen.Meth
 	g.P("\t\tctx := _", svcName, "_ctx(c)")
 	g.P("\t\tres, err := srv.", m.GoName, "(ctx, ", reqArg, ")")
 	g.P("\t\tif err != nil {")
-	g.P("\t\t\treturn _", svcName, "_error(c, err)")
+	g.P("\t\t\treturn err")
 	g.P("\t\t}")
 	writeResponse(g, m, r)
 	g.P("\t}")

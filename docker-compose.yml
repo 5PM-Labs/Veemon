@@ -2,12 +2,10 @@ services:
   # One-shot: apply SQL migrations before the app starts. golang-migrate is the
   # source of truth (AutoMigrate is disabled by default).
   migrate:
-    build:
-      # Widened to the repo root: apps/api/go.mod has a local `replace` onto
-      # ../../packages/go-common, which lives outside apps/api and so must be
-      # in the build context for the Dockerfile to COPY it.
-      context: .
-      dockerfile: apps/api/Dockerfile
+    # Reuse the image built by `app` instead of building a second identical one.
+    # Build it first: `docker compose build app && docker compose up`.
+    image: veemon-api:local
+    pull_policy: never
     command: ["/app/migrate", "up"]
     environment:
       - DB_HOST=postgres
@@ -23,6 +21,7 @@ services:
       - app-network
 
   app:
+    image: veemon-api:local
     build:
       # Widened to the repo root: apps/api/go.mod has a local `replace` onto
       # ../../packages/go-common, which lives outside apps/api and so must be
@@ -58,8 +57,8 @@ services:
       - RABBITMQ_VHOST=/
       # JWT — DEV ONLY, 64-char hex (32 bytes). Generate a fresh one for any
       # real deployment: openssl rand -hex 32
-      - JWT_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
-      - JWT_EXPIRATION=24
+      - PASETO_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      - PASETO_EXPIRATION_HOURS=24
       # CORS
       - CORS_ORIGINS=*
       # OpenTelemetry

@@ -45,7 +45,7 @@ hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.Defa
 err := bcrypt.CompareHashAndPassword(hashedPassword, []byte(password))
 
 // ✓ Good: Use strong JWT secret (min 256 bits)
-// In .env: JWT_SECRET=<random-32-byte-hex-string>
+// In .env: PASETO_SECRET=<random-32-byte-hex-string>
 
 // ✗ Bad: Weak or hardcoded secrets
 const jwtSecret = "secret123"  // NEVER DO THIS
@@ -87,7 +87,7 @@ type LoginAttempt struct {
 
 // ✓ Good: Use secure defaults
 cfg := Config{
-    JWTExpiration: 24 * time.Hour,  // Not indefinite
+    PasetoExpirationHours: 24 * time.Hour,  // Not indefinite
     MaxLoginAttempts: 5,
     LockoutDuration: 15 * time.Minute,
 }
@@ -153,9 +153,9 @@ func passwordValidator(fl validator.FieldLevel) bool {
 }
 
 // ✓ Good: mint tokens via pkg/token (PASETO v4 local, revocable jti, bounded expiry).
-// The token service enforces a strong secret at construction; JWT_SECRET has no
+// The token service enforces a strong secret at construction; PASETO_SECRET has no
 // default and Config.Validate() fails fast on a weak/placeholder value.
-tokenService, err := token.NewTokenService(cfg.JWTSecret, cfg.JWTExpiration)
+tokenService, err := token.NewTokenService(cfg.PasetoSecret, cfg.PasetoExpirationHours)
 if err != nil {
     return fmt.Errorf("init token service: %w", err)
 }
@@ -164,8 +164,8 @@ accessToken, err := tokenService.GenerateToken(user.ID, user.Email, user.Roles, 
 // Logout/refresh revoke the token by its jti via pkg/authguard (Redis-backed).
 ```
 
-> Note: this project uses PASETO (`pkg/token`), not JWT. `golang-jwt` was removed;
-> `JWT_SECRET` is only a (legacy) variable name for the PASETO signing key.
+> Note: this project uses PASETO (`internal/pkg/token`), not JWT. `golang-jwt` was removed;
+> `PASETO_SECRET` is the PASETO v4 symmetric key (not a JWT secret).
 
 ## A08:2021 - Software and Data Integrity Failures
 

@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach } from "bun:test";
 
-// Minimal localStorage stub so the browser-oriented module runs under bun.
+// Minimal sessionStorage stub so the browser path runs under bun.
 const store = new Map<string, string>();
-(globalThis as unknown as { localStorage: Storage }).localStorage = {
+let localWrites = 0;
+(globalThis as unknown as { sessionStorage: Storage }).sessionStorage = {
   getItem: (k: string) => store.get(k) ?? null,
   setItem: (k: string, v: string) => void store.set(k, v),
   removeItem: (k: string) => void store.delete(k),
@@ -10,24 +11,40 @@ const store = new Map<string, string>();
   key: () => null,
   length: 0,
 } as Storage;
+(globalThis as unknown as { localStorage: Storage }).localStorage = {
+  getItem: () => null,
+  setItem: () => void localWrites++,
+  removeItem: () => undefined,
+  clear: () => undefined,
+  key: () => null,
+  length: 0,
+} as Storage;
 
 const { getToken, setToken, clearToken } = await import("./auth");
 
-describe("auth token storage", () => {
-  beforeEach(() => store.clear());
-
-  it("returns null when no token is set", () => {
-    expect(getToken()).toBeNull();
+describe("auth token storage (browser path)", () => {
+  beforeEach(() => {
+    store.clear();
+    localWrites = 0;
   });
 
-  it("stores and reads a token", () => {
-    setToken("abc");
-    expect(getToken()).toBe("abc");
+  it("returns null when no token is set", async () => {
+    expect(await getToken()).toBeNull();
   });
 
-  it("clears a token", () => {
-    setToken("abc");
-    clearToken();
-    expect(getToken()).toBeNull();
+  it("stores and reads a token", async () => {
+    await setToken("abc");
+    expect(await getToken()).toBe("abc");
+  });
+
+  it("clears a token", async () => {
+    await setToken("abc");
+    await clearToken();
+    expect(await getToken()).toBeNull();
+  });
+
+  it("never writes the token to localStorage (XSS persistence)", async () => {
+    await setToken("abc");
+    expect(localWrites).toBe(0);
   });
 });

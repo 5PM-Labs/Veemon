@@ -1,7 +1,7 @@
 # Codebase Conventions (established — follow these)
 
 - **Config validates and fails fast.** `Config.Validate()` (called in
-  `cmd/server`) rejects a weak/placeholder `JWT_SECRET`, `PREFORK=true` (the
+  `cmd/server`) rejects a weak/placeholder `PASETO_SECRET`, `PREFORK=true` (the
   embedded gRPC server is incompatible with Fiber prefork), and `CORS_ORIGINS=*`
   in production. Never ship a usable default secret; add new env keys to
   `.env.example` and bind them (all keys are bound via reflection so `Unmarshal`
@@ -18,8 +18,8 @@
 - **Updates are column-scoped.** Use `Updates(map/struct)` on the changed columns
   (see `repository.UpdateFields`), not read-modify-write with `Save`, to avoid
   lost updates.
-- **REST responses go through `pkg/response` protojson helpers** (`SuccessProto`,
+- **REST responses go through `internal/pkg/response` protojson helpers** (`SuccessProto`,
   `CreatedProto`, `SuccessProtoList`) so field names are camelCase per the proto
   contract.
-- **5xx causes are logged, never leaked.** Map domain errors to `pkg/errors`
+- **5xx causes are logged, never leaked.** Map domain errors to `internal/pkg/errors`
   helpers; log the underlying cause server-side and return a sanitized message.

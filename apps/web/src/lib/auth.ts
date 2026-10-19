@@ -1,24 +1,40 @@
 // PASETO token storage.
 //
-// SECURITY TRADEOFF: this scaffold uses localStorage so the browser build works
-// with zero server changes (Approach A). localStorage is readable by any script
-// on the page, so a successful XSS lets an attacker exfiltrate the token. Harden
-// for production by choosing one of:
-//   - httpOnly, Secure, SameSite cookies (needs the API to set/read cookies), or
-//   - keeping the token in memory only (lost on reload; pair with a refresh flow), or
-//   - the Tauri secure store / OS keychain for the desktop build.
-// The getToken/setToken/clearToken interface is the single seam to swap — callers
-// don't change.
+// Two backends behind one async interface:
+//   - Tauri desktop: the token is written through a Rust command into
+//     tauri-plugin-store (OS app-data dir), so page script cannot read the file
+//     and it survives reloads.
+//   - Browser: sessionStorage (in-memory for the tab's lifetime), NOT
+//     localStorage — an XSS can still call the API while the tab is open, but the
+//     token no longer persists on disk for a later injection to steal.
+//
+// The `getToken/setToken/clearToken` functions are the single seam; callers
+// await them and never touch storage directly.
+import { invoke } from "@tauri-apps/api/core";
+
 const KEY = "veemon.token";
 
-export function getToken(): string | null {
-  return localStorage.getItem(KEY);
+function isTauri(): boolean {
+  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
 
-export function setToken(token: string): void {
-  localStorage.setItem(KEY, token);
+export async function getToken(): Promise<string | null> {
+  if (isTauri()) return invoke<string | null>("get_token");
+  return sessionStorage.getItem(KEY);
 }
 
-export function clearToken(): void {
-  localStorage.removeItem(KEY);
+export async function setToken(token: string): Promise<void> {
+  if (isTauri()) {
+    await invoke("set_token", { token });
+    return;
+  }
+  sessionStorage.setItem(KEY, token);
+}
+
+export async function clearToken(): Promise<void> {
+  if (isTauri()) {
+    await invoke("clear_token");
+    return;
+  }
+  sessionStorage.removeItem(KEY);
 }

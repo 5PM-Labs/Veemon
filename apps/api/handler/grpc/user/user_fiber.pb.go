@@ -9,9 +9,9 @@ import (
 	proto "google.golang.org/protobuf/proto"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	time "time"
-	errors "veemon/pkg/errors"
-	middleware "veemon/pkg/middleware"
-	response "veemon/pkg/response"
+	redis "veemon-common/infra/redis"
+	middleware "veemon/internal/pkg/middleware"
+	response "veemon/internal/pkg/response"
 )
 
 // UserApiAuthConfig maps each gRPC full-method name to its auth policy.
@@ -31,9 +31,11 @@ var UserApiAuthConfig = map[string]middleware.AuthConfig{
 
 // RegisterUserApiRoutes registers all REST routes for UserApi on router,
 // applying per-route auth and rate limiting declared in the proto.
-func RegisterUserApiRoutes(router v3.Router, srv UserApiServer, validator middleware.TokenValidator) {
-	router.Post("/api/v1/auth/register", _UserApi_rateLimit(10, 60*time.Second), _UserApi_Register(srv))
-	router.Post("/api/v1/auth/login", _UserApi_rateLimit(10, 60*time.Second), _UserApi_Login(srv))
+// redisClient may be nil: per-route limits then fall back to per-process
+// counters instead of cluster-wide ones.
+func RegisterUserApiRoutes(router v3.Router, srv UserApiServer, validator middleware.TokenValidator, redisClient *redis.Client) {
+	router.Post("/api/v1/auth/register", _UserApi_rateLimit(redisClient, "/api/v1/auth/register", 10, 60*time.Second), _UserApi_Register(srv))
+	router.Post("/api/v1/auth/login", _UserApi_rateLimit(redisClient, "/api/v1/auth/login", 10, 60*time.Second), _UserApi_Login(srv))
 	router.Post("/api/v1/auth/refresh", middleware.AuthMiddleware(validator, middleware.AuthConfig{NeedAuth: true, AllowedRoles: nil}), _UserApi_RefreshToken(srv))
 	router.Get("/api/v1/auth/me", middleware.AuthMiddleware(validator, middleware.AuthConfig{NeedAuth: true, AllowedRoles: nil}), _UserApi_GetMe(srv))
 	router.Post("/api/v1/auth/logout", middleware.AuthMiddleware(validator, middleware.AuthConfig{NeedAuth: true, AllowedRoles: nil}), _UserApi_Logout(srv))
@@ -52,7 +54,7 @@ func _UserApi_Register(srv UserApiServer) v3.Handler {
 		ctx := _UserApi_ctx(c)
 		res, err := srv.Register(ctx, &req)
 		if err != nil {
-			return _UserApi_error(c, err)
+			return err
 		}
 		return response.CreatedProto(c, res)
 	}
@@ -67,7 +69,7 @@ func _UserApi_Login(srv UserApiServer) v3.Handler {
 		ctx := _UserApi_ctx(c)
 		res, err := srv.Login(ctx, &req)
 		if err != nil {
-			return _UserApi_error(c, err)
+			return err
 		}
 		return response.SuccessProto(c, res)
 	}
@@ -79,7 +81,7 @@ func _UserApi_RefreshToken(srv UserApiServer) v3.Handler {
 		ctx := _UserApi_ctx(c)
 		res, err := srv.RefreshToken(ctx, &req)
 		if err != nil {
-			return _UserApi_error(c, err)
+			return err
 		}
 		return response.SuccessProto(c, res)
 	}
@@ -91,7 +93,7 @@ func _UserApi_GetMe(srv UserApiServer) v3.Handler {
 		ctx := _UserApi_ctx(c)
 		res, err := srv.GetMe(ctx, req)
 		if err != nil {
-			return _UserApi_error(c, err)
+			return err
 		}
 		return response.SuccessProto(c, res)
 	}
@@ -103,7 +105,7 @@ func _UserApi_Logout(srv UserApiServer) v3.Handler {
 		ctx := _UserApi_ctx(c)
 		res, err := srv.Logout(ctx, req)
 		if err != nil {
-			return _UserApi_error(c, err)
+			return err
 		}
 		return response.SuccessProto(c, res)
 	}
@@ -120,7 +122,7 @@ func _UserApi_ListUsers(srv UserApiServer) v3.Handler {
 		ctx := _UserApi_ctx(c)
 		res, err := srv.ListUsers(ctx, &req)
 		if err != nil {
-			return _UserApi_error(c, err)
+			return err
 		}
 		items := make([]proto.Message, len(res.Users))
 		for i, m := range res.Users {
@@ -137,7 +139,7 @@ func _UserApi_GetUser(srv UserApiServer) v3.Handler {
 		ctx := _UserApi_ctx(c)
 		res, err := srv.GetUser(ctx, &req)
 		if err != nil {
-			return _UserApi_error(c, err)
+			return err
 		}
 		return response.SuccessProto(c, res)
 	}
@@ -153,7 +155,7 @@ func _UserApi_UpdateUser(srv UserApiServer) v3.Handler {
 		ctx := _UserApi_ctx(c)
 		res, err := srv.UpdateUser(ctx, &req)
 		if err != nil {
-			return _UserApi_error(c, err)
+			return err
 		}
 		return response.SuccessProto(c, res)
 	}
@@ -166,7 +168,7 @@ func _UserApi_DeleteUser(srv UserApiServer) v3.Handler {
 		ctx := _UserApi_ctx(c)
 		res, err := srv.DeleteUser(ctx, &req)
 		if err != nil {
-			return _UserApi_error(c, err)
+			return err
 		}
 		return response.SuccessProto(c, res)
 	}
@@ -182,19 +184,14 @@ func _UserApi_ctx(c v3.Ctx) context.Context {
 	return ctx
 }
 
-// _UserApi_error renders a handler error: AppError values keep their
-// status/message; anything else becomes a sanitized 500.
-func _UserApi_error(c v3.Ctx, err error) error {
-	if appErr, ok := err.(*errors.AppError); ok {
-		return appErr.FiberError(c)
-	}
-	return response.InternalError(c, 500, "internal server error")
-}
-
 // _UserApi_rateLimit builds a fixed-window per-IP limiter middleware.
-func _UserApi_rateLimit(max int, window time.Duration) v3.Handler {
+// Keys are scoped to the route so two routes never share a counter.
+func _UserApi_rateLimit(redisClient *redis.Client, route string, max int, window time.Duration) v3.Handler {
 	cfg := middleware.DefaultRateLimitConfig()
 	cfg.Max = max
 	cfg.Duration = window
+	if redisClient != nil {
+		cfg.Storage = middleware.NewRedisStorage(redisClient, "veemon:ratelimit:route:"+route+":")
+	}
 	return middleware.RateLimitMiddleware(cfg)
 }

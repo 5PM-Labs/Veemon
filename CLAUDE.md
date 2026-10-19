@@ -84,7 +84,9 @@ on mobile files.
   (`CommonModule`/`ServerModule`/`WorkerModule`). `apps/ai`'s `composition.ts`
   uses Awilix the same way. Shared Go infra (logging, telemetry/metrics,
   redis/rabbitmq/resilience/database) lives in `packages/go-common` — a
-  separate module, not `apps/api/pkg`.
+  separate module. `apps/api/internal/pkg` holds app-only code (token, authguard,
+  middleware, response, validation, errors) that is NOT importable outside the
+  `veemon` module (Go `internal/` rule).
 
 ## Related docs
 

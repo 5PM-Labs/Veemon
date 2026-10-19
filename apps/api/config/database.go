@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"time"
 
 	"veemon-common/infra/database"
@@ -37,8 +38,11 @@ func NewDatabase(cfg *Config, log *zap.Logger) (*gorm.DB, error) {
 	// opt-in (DB_AUTO_MIGRATE) for local development convenience only, so
 	// production schema changes always go through reviewed migrations.
 	if cfg.DBAutoMigrate {
+		if cfg.Environment == "production" {
+			return nil, fmt.Errorf("DB_AUTO_MIGRATE must be disabled in production; use `make migrate`")
+		}
 		log.Warn("DB_AUTO_MIGRATE is enabled; GORM AutoMigrate is running. " +
-			"Use golang-migrate (`make migrate`) as the source of truth in production.")
+			"Use golang-migrate (`make migrate`) as the source of truth.")
 		if err := database.AutoMigrate(db, &entity.User{}); err != nil {
 			return nil, err
 		}
