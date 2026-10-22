@@ -11,6 +11,9 @@ env:
   # Pinned, not `latest`: an action release must not silently change the gate.
   GOLANGCI_LINT_VERSION: "v2.12.2"
   FLUTTER_VERSION: "3.47.7"
+  # Pinned to the version used locally (`bun --version`). Bun is the JS runtime
+  # for apps/web and apps/ai, so `latest` would move it under CI silently.
+  BUN_VERSION: "1.4.3"
 
 jobs:
   lint:
@@ -121,7 +124,7 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: ${{ env.BUN_VERSION }}
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -174,7 +177,7 @@ jobs:
       - name: Set up Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version: ${{ env.BUN_VERSION }}
 
       - name: Install dependencies
         run: bun install --frozen-lockfile

@@ -4,6 +4,14 @@ All notable changes to this boilerplate are documented here.
 
 ## [Unreleased] — Hardening pass
 
+### Security
+- **Pinned JS runtime** — CI no longer installs `bun-version: latest`; the Bun
+  version is `BUN_VERSION` (1.4.3) in `.github/workflows/ci.yml`, mirrored by
+  `.tool-versions`. Bun vendors Node code (undici, c-ares, TLS, brotli), so the
+  Node 2026-10-21 security release (CVE-2026-105481…111497) is addressed by
+  tracking a patched Bun build rather than adding a Node install step. The repo
+  runs no Node process of its own.
+
 ### Fixed
 - **Pagination** — omitting `page`/`size` on `GET /api/v1/users` produced
   `LIMIT 0` and a division by zero; values are now clamped at the usecase

@@ -28,6 +28,15 @@ never leak (secrets). Maps to SOC 2 CC8/CC9 and OWASP A06/A08.
 IDs listed under "Accepted risk" below are the only ones `bun audit --ignore`
 may suppress; everything else fails the build.
 
+### Runtime versions
+
+- The JS runtime is **Bun**, pinned as `BUN_VERSION` in `.github/workflows/ci.yml`
+  and mirrored by `.tool-versions`. Never `latest` in CI.
+- Node upshots we do not run directly still matter: Bun vendors Node-compatible
+  code (undici, c-ares, TLS, brotli) and `bun audit` reports Node CVEs against it.
+  Treat a Node security release as a trigger to bump `BUN_VERSION` to a Bun
+  build whose vendored Node is patched — not to add a Node install step.
+
 ### Accepted risk (unpatched advisories)
 
 Every entry needs: advisory ID, why no upgrade path, proof the vulnerable code
@@ -50,6 +59,28 @@ proof is not accepted — it is a bug to fix.
 - **Re-check trigger.** Remove this entry the moment either becomes true:
   `loadModules` is used anywhere in `apps/ai`, or `braces` ships a fix
   (then upgrade and drop the `--ignore` from the `vuln-js` job).
+
+#### Why it is not tree-shaken away
+
+The obvious fix is to drop `fast-glob` from the install. It fails, and the
+next person will try it again — so record the result:
+
+- `awilix@13.0.5` declares `fast-glob` as a hard `dependencies` (not a peer), and
+  `lib/awilix.js` → `lib/list-modules.js` → `require("fast-glob")` is a module-load
+  edge, not a lazy call inside `loadModules`. Bun resolves the whole static graph,
+  so `braces` is installed (and audited) even though `loadModules` is never called.
+- Rewriting the lock entry to `"optionalPeers": ["fast-glob"]` (to simulate the
+  fix) does not resolve: Bun 1.4.3 strips the override on the next resolve and
+  leaves a dangling symlink in the store — `error: ENOENT reading …/awilix@13.0.5/node_modules/fast-glob`,
+  i.e. `import "awilix"` stops resolving at runtime. Reverted.
+- `awilix/browser` has no `fast-glob`, but it is only selected via the
+  `browser`/`workerd`/`react-native` export conditions; mapping `browser` in
+  `apps/ai` would also swap the API for the browser build of `awilix` in the web
+  bundle. Not worth the coupling for an unreachable DoS.
+
+Fix condition: an `awilix` release that moves `fast-glob` to a peer/optional
+dependency, or `braces > 3.0.3`. Bump, then delete this entry and the
+`--ignore` in `ci.yml`.
 
 - Add a dependency only when it pulls its weight; prefer well-maintained,
   widely used packages (check publisher, last release, open advisories,
