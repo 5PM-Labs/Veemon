@@ -2,7 +2,7 @@
 
 # Build stage — builds from the repo root because go.mod lives there.
 # Build context must be the repo root (docker-compose.yml `context: .`).
-FROM golang:1.26.9-alpine AS builder
+FROM golang:1.27.2-alpine AS builder
 
 WORKDIR /app
 
