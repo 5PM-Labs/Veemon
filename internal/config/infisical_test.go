@@ -16,7 +16,10 @@ func TestNewLoadsInfisicalSecretsBeforeUnmarshal(t *testing.T) {
 	t.Setenv("INFISICAL_CLIENT_SECRET", "client-secret")
 	t.Setenv("INFISICAL_PROJECT_ID", "project-id")
 	t.Setenv("INFISICAL_ENVIRONMENT", "dev")
+	// An exported DB_* var in the developer's shell wins over Infisical by
+	// design, so both keys this test asserts about are blanked first.
 	t.Setenv("DB_PASSWORD", "")
+	t.Setenv("DB_NAME", "")
 
 	restore := setInfisicalSecretLoaderForTest(t, func(ctx context.Context, cfg InfisicalConfig) (map[string]string, error) {
 		assert.Equal(t, "client-id", cfg.ClientID)
