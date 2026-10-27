@@ -2,7 +2,7 @@
 
 [security](security.md) covers the general OWASP Top 10. APIs fail in their own
 ways; this list is what reviewers check on every route in `contract/*.proto`
-and its handler/usecase. Examples are Go (`apps/api`).
+and its handler/usecase. Examples are Go (the root module).
 
 ## API1 — Broken Object Level Authorization (BOLA)
 

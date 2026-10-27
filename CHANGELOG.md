@@ -2,6 +2,46 @@
 
 All notable changes to this boilerplate are documented here.
 
+## [Unreleased] — Repo restructure, pgx, RBAC, Auth0
+
+### Changed
+- **Single Go module at the repo root.** `apps/api/go.mod` and the separate
+  `packages/go-common` module are gone; `go.mod` sits at the root (module
+  `github.com/5PM-Labs/veemon`) and `internal/infra` replaces `veemon-common`.
+  Docker, goreleaser, CI, and `make` all run from the root — no cross-module
+  `replace`, no per-app Go build.
+- **Layout.** `apps/api/{cmd,config,handler,entity,repository,app,docs,migrations}`
+  → `cmd/`, `internal/{config,handler,domain,repository,usecase,docs}`,
+  `migrations/`. `internal/` keeps app code unimportable from outside.
+- **GORM → pgx v5.** Repositories are explicit SQL over `*pgxpool.Pool`;
+  `gorm`/`gorm.io/*` are gone. Driver errors are translated at the repository
+  boundary (`domain.ErrDuplicateEntry`, `domain.ErrNotFound`); multi-statement
+  writes use `database.InTx`.
+- **Root `package.json`** points its Go scripts at root `make` targets.
+
+### Added
+- **RBAC.** `roles`, `permissions`, `role_permissions`, `user_roles`, and
+  `audit_logs` (migration `000002`), seeded with `superadmin`/`admin`/`user`.
+  Routes declare `auth { permissions: [...] }` in the proto; the validator
+  resolves roles + permissions per request, so a role change applies on the
+  next request without re-login. `*` is the superadmin wildcard.
+- **Auth0 login.** `POST /api/v1/auth/auth0/login` verifies an Auth0 RS256
+  token against the tenant JWKS and issues a first-party PASETO token,
+  provisioning the account (`authProvider=auth0`) on first login. Off unless
+  `AUTH0_DOMAIN` + `AUTH0_AUDIENCE` are set.
+- **Detailed auth columns** on `users`: `avatar_url`, `locale`, `timezone`,
+  `email_verified`, `mfa_enabled`, `auth_provider`, `auth0_subject`, `metadata`
+  (JSONB), `last_login_at`, `failed_login_count`, `locked_until`.
+- **CI**: Postgres service job that applies the real migrations and runs the
+  `-tags integration` repository tests; `gofmt` gate; dependency-review via
+  Dependabot (Go, npm, Actions, Docker). Docker images build on demand only
+  (`.github/workflows/docker.yml`), not on every push.
+
+### Removed
+- `users.roles` text[] — `user_roles` is the single source of truth, so a role
+  list can never disagree with the RBAC tables.
+- `apps/api/` and `packages/go-common/` directories.
+
 ## [Unreleased] — Hardening pass
 
 ### Security

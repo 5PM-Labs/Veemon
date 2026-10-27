@@ -18,7 +18,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file veemon/annotations.proto.
  */
 export const file_veemon_annotations: GenFile = /*@__PURE__*/
-  fileDesc("Chh2ZWVtb24vYW5ub3RhdGlvbnMucHJvdG8SBnZlZW1vbiKfAQoFUm91dGUSDgoGbWV0aG9kGAEgASgJEgwKBHBhdGgYAiABKAkSDAoEYm9keRgDIAEoCBIaCgRhdXRoGAQgASgLMgwudmVlbW9uLkF1dGgSJwoIcmVzcG9uc2UYBSABKA4yFS52ZWVtb24uUmVzcG9uc2VTdHlsZRIlCgpyYXRlX2xpbWl0GAYgASgLMhEudmVlbW9uLlJhdGVMaW1pdCInCgRBdXRoEhAKCHJlcXVpcmVkGAEgASgIEg0KBXJvbGVzGAIgAygJIjAKCVJhdGVMaW1pdBILCgNtYXgYASABKA0SFgoOd2luZG93X3NlY29uZHMYAiABKA0qWwoNUmVzcG9uc2VTdHlsZRIVChFSRVNQT05TRV9TVFlMRV9PSxAAEhoKFlJFU1BPTlNFX1NUWUxFX0NSRUFURUQQARIXChNSRVNQT05TRV9TVFlMRV9MSVNUEAI6RQoFcm91dGUSHi5nb29nbGUucHJvdG9idWYuTWV0aG9kT3B0aW9ucxjLhwMgASgLMg0udmVlbW9uLlJvdXRlUgVyb3V0ZUIjWiF2ZWVtb24vaGFuZGxlci9ncnBjL3ZlZW1vbjt2ZWVtb25iBnByb3RvMw", [file_google_protobuf_descriptor]);
+  fileDesc("Chh2ZWVtb24vYW5ub3RhdGlvbnMucHJvdG8SBnZlZW1vbiKfAQoFUm91dGUSDgoGbWV0aG9kGAEgASgJEgwKBHBhdGgYAiABKAkSDAoEYm9keRgDIAEoCBIaCgRhdXRoGAQgASgLMgwudmVlbW9uLkF1dGgSJwoIcmVzcG9uc2UYBSABKA4yFS52ZWVtb24uUmVzcG9uc2VTdHlsZRIlCgpyYXRlX2xpbWl0GAYgASgLMhEudmVlbW9uLlJhdGVMaW1pdCI8CgRBdXRoEhAKCHJlcXVpcmVkGAEgASgIEg0KBXJvbGVzGAIgAygJEhMKC3Blcm1pc3Npb25zGAMgAygJIjAKCVJhdGVMaW1pdBILCgNtYXgYASABKA0SFgoOd2luZG93X3NlY29uZHMYAiABKA0qWwoNUmVzcG9uc2VTdHlsZRIVChFSRVNQT05TRV9TVFlMRV9PSxAAEhoKFlJFU1BPTlNFX1NUWUxFX0NSRUFURUQQARIXChNSRVNQT05TRV9TVFlMRV9MSVNUEAI6RQoFcm91dGUSHi5nb29nbGUucHJvdG9idWYuTWV0aG9kT3B0aW9ucxjLhwMgASgLMg0udmVlbW9uLlJvdXRlUgVyb3V0ZUJAWj5naXRodWIuY29tLzVQTS1MYWJzL3ZlZW1vbi9pbnRlcm5hbC9oYW5kbGVyL2dycGMvdmVlbW9uO3ZlZW1vbmIGcHJvdG8z", [file_google_protobuf_descriptor]);
 
 /**
  * Route declares how an RPC is exposed over REST. Attach it to a method:
@@ -106,11 +106,20 @@ export type Auth = Message<"veemon.Auth"> & {
 
   /**
    * If non-empty, the caller must hold at least one of these roles. Implies
-   * required = true.
+   * required = true. Role and permission requirements are OR-ed.
    *
    * @generated from field: repeated string roles = 2;
    */
   roles: string[];
+
+  /**
+   * If non-empty, the caller must hold at least one of these permission codes
+   * (e.g. "users:read"). Implies required = true. Role and permission
+   * requirements are OR-ed.
+   *
+   * @generated from field: repeated string permissions = 3;
+   */
+  permissions: string[];
 };
 
 /**

@@ -1,0 +1,43 @@
+version: 2
+updates:
+  # Go module (root)
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      go-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  # JS workspaces (Bun lockfile at the root)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      js-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+
+  # Docker base images
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+
+  # Flutter is managed via pubspec.lock + the Flutter SDK pin in
+  # .tool-versions; Dependabot has no Flutter ecosystem, so `flutter pub
+  # upgrade --major-versions` stays a manual (scheduled) task.

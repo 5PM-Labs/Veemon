@@ -20,7 +20,7 @@ never leak (secrets). Maps to SOC 2 CC8/CC9 and OWASP A06/A08.
 
 | Ecosystem | Lockfile (commit it) | Vulnerability scan |
 |-----------|---------------------|-------------------|
-| Go (`apps/api`, `packages/go-common`) | `go.sum` | `govulncheck ./...` (CI `vuln` job) |
+| Go (root module) | `go.sum` | `govulncheck ./...` (CI `vuln` job) |
 | Bun (`apps/web`, `apps/ai`, `packages/*`) | `bun.lock` (`--frozen-lockfile` in CI) | `bun audit` / OSV-Scanner |
 | Dart/Flutter (`apps/mobile`) | `pubspec.lock` | OSV-Scanner on `pubspec.lock` |
 

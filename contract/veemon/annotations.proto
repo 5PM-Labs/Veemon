@@ -9,7 +9,7 @@ package veemon;
 
 import "google/protobuf/descriptor.proto";
 
-option go_package = "veemon/handler/grpc/veemon;veemon";
+option go_package = "github.com/5PM-Labs/veemon/internal/handler/grpc/veemon;veemon";
 
 // Route declares how an RPC is exposed over REST. Attach it to a method:
 //
@@ -53,8 +53,13 @@ message Auth {
   bool required = 1;
 
   // If non-empty, the caller must hold at least one of these roles. Implies
-  // required = true.
+  // required = true. Role and permission requirements are OR-ed.
   repeated string roles = 2;
+
+  // If non-empty, the caller must hold at least one of these permission codes
+  // (e.g. "users:read"). Implies required = true. Role and permission
+  // requirements are OR-ed.
+  repeated string permissions = 3;
 }
 
 // ResponseStyle selects how a successful handler result is serialized.

@@ -23,11 +23,10 @@ services:
   app:
     image: veemon-api:local
     build:
-      # Widened to the repo root: apps/api/go.mod has a local `replace` onto
-      # ../../packages/go-common, which lives outside apps/api and so must be
-      # in the build context for the Dockerfile to COPY it.
+      # The Go module lives at the repo root (single module), so the build
+      # context is the root and the Dockerfile is at the root too.
       context: .
-      dockerfile: apps/api/Dockerfile
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
       - "50051:50051"

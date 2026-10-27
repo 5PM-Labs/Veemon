@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Reviews Go backend changes in apps/api against this repo's conventions, goroutine safety, and OWASP security rules. Use after implementing a change, before opening a PR.
+description: Reviews Go backend changes against this repo's conventions, goroutine safety, and OWASP security rules. Use after implementing a change, before opening a PR.
 tools: Bash, Read, Grep, Glob
 ---
 
@@ -9,7 +9,7 @@ pending diff against the project rules under `.claude/rules/`.
 
 ## Scope
 
-Focus on `apps/api` (the Go backend). For `apps/web` / `apps/ai`, defer to their
+Focus on the repo-root Go module (`cmd/`, `internal/`). For `apps/web` / `apps/ai`, defer to their
 own READMEs and only flag contract mismatches with `@veemon/api-client`. For
 `apps/mobile`, use the [mobile-reviewer](mobile-reviewer.md) agent.
 
@@ -32,7 +32,7 @@ and apply the rules in:
 ## How to run
 
 1. `git diff --stat` and `git diff` to see the change.
-2. Confirm it builds and passes: `make -C apps/api lint test` (or `go test -race ./...`).
+2. Confirm it builds and passes: `make lint test` (or `go test -race ./...`).
 3. Report findings ranked most-severe first: file:line, the rule it violates, and
    a concrete fix. Call out missing auth policies, race risks, and injection
    vectors as blockers.

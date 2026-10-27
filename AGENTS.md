@@ -4,9 +4,9 @@ Guidance for AI coding agents working in this repository. This is the same
 content as [CLAUDE.md](CLAUDE.md) — kept here for tools that look for `AGENTS.md`.
 The authoritative, modular rules live under [`.claude/`](.claude/).
 
-This repo is a **polyglot Bun-workspace monorepo**: a Go backend (`apps/api`), a
+This repo is a **polyglot Bun-workspace monorepo**: a Go backend, a
 React + Tauri client (`apps/web`), a Flutter mobile client (`apps/mobile`), and a
-LangGraph.js service (`apps/ai`), sharing one proto contract (`contract/`). Rules below target `apps/api` (the Go backend)
+LangGraph.js service (`apps/ai`), sharing one proto contract (`contract/`). Rules below target the Go backend
 unless noted; start with
 [rules/project-overview.md](.claude/rules/project-overview.md).
 
@@ -19,7 +19,7 @@ unless noted; start with
 | [codebase-conventions](.claude/rules/codebase-conventions.md) | Fail-fast config, fail-closed auth, protojson responses |
 | [coding-standards](.claude/rules/coding-standards.md) | File org, naming, errors, context, interfaces |
 | [goroutines](.claude/rules/goroutines.md) | Leaks, races, deadlocks, worker pools, panics |
-| [database](.claude/rules/database.md) | GORM usage, transactions, connection pool |
+| [database](.claude/rules/database.md) | pgx usage, transactions, connection pool |
 | [redis](.claude/rules/redis.md) | Redigo connection pooling |
 | [testing](.claude/rules/testing.md) | Table-driven tests, mocks, race detection |
 | [observability](.claude/rules/observability.md) | Logging shape, metric/span conventions, correlation, no secrets/PII |
@@ -82,7 +82,7 @@ on mobile files.
   `fx.New(...).Run()` entry points; wiring lives in `config/fx_*.go`
   (`CommonModule`/`ServerModule`/`WorkerModule`). `apps/ai`'s `composition.ts`
   uses Awilix the same way. Shared Go infra (logging, telemetry/metrics,
-  redis/rabbitmq/resilience/database) lives in `packages/go-common` — a
-  separate module. `apps/api/internal/pkg` holds app-only code (token, authguard,
-  middleware, response, validation, errors) that is NOT importable outside the
-  `veemon` module (Go `internal/` rule).
+  redis/rabbitmq/resilience/database/auth0) lives in `internal/infra` — same
+  root module, no `replace`. `internal/pkg` holds app-only code (token,
+  authguard, middleware, response, validation, errors); `internal/` blocks
+  imports from outside the module (Go `internal/` rule).

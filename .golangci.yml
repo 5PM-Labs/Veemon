@@ -1,0 +1,64 @@
+# golangci-lint v2 configuration.
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  # Start from the standard set (errcheck, govet, ineffassign, staticcheck,
+  # unused) and add high-signal, low-false-positive checks.
+  default: standard
+  enable:
+    - bodyclose
+    - gosec
+    - misspell
+    - unconvert
+    - whitespace
+  settings:
+    misspell:
+      locale: US
+    staticcheck:
+      # Disable "quickfix" style suggestions (QF*) — advisory, not bugs — and
+      # ST1003 (underscore package names): the project intentionally uses names
+      # like user_repository for clarity (see CLAUDE.md).
+      checks:
+        - all
+        - -QF1002
+        - -QF1008
+        - -ST1003
+    errcheck:
+      # Best-effort cleanup (deferred Close/Sync) is intentionally unchecked.
+      exclude-functions:
+        - (io.Closer).Close
+        - (*go.uber.org/zap.Logger).Sync
+    gosec:
+      excludes:
+        - G104 # unhandled errors — already covered by errcheck
+        - G703 # path-traversal false positives on fixed internal paths
+  exclusions:
+    generated: lax
+    rules:
+      # Generated protobuf code is not ours to lint.
+      - path: \.pb\.go
+        linters:
+          - errcheck
+          - gosec
+          - staticcheck
+          - unused
+      # Tests may be looser.
+      - path: _test\.go
+        linters:
+          - bodyclose
+          - errcheck
+          - gosec
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      # Local import prefix: everything in this module sorts into its own group.
+      local-prefixes:
+        - github.com/5PM-Labs/veemon

@@ -13,7 +13,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file user/user.proto.
  */
 export const file_user_user: GenFile = /*@__PURE__*/
-  fileDesc("Cg91c2VyL3VzZXIucHJvdG8SBHVzZXIiSwoLUmVnaXN0ZXJSZXESDQoFZW1haWwYASABKAkSEAoIcGFzc3dvcmQYAiABKAkSDAoEbmFtZRgDIAEoCRINCgVwaG9uZRgEIAEoCSI2CgtSZWdpc3RlclJlcxIKCgJpZBgBIAEoCRINCgVlbWFpbBgCIAEoCRIMCgRuYW1lGAMgASgJIisKCExvZ2luUmVxEg0KBWVtYWlsGAEgASgJEhAKCHBhc3N3b3JkGAIgASgJIjoKCExvZ2luUmVzEg0KBXRva2VuGAEgASgJEh8KBHVzZXIYAiABKAsyES51c2VyLlVzZXJQcm9maWxlIiAKD1JlZnJlc2hUb2tlblJlcRINCgV0b2tlbhgBIAEoCSIgCg9SZWZyZXNoVG9rZW5SZXMSDQoFdG9rZW4YASABKAkiHAoJTG9nb3V0UmVzEg8KB21lc3NhZ2UYASABKAkiaQoLVXNlclByb2ZpbGUSCgoCaWQYASABKAkSDQoFZW1haWwYAiABKAkSDAoEbmFtZRgDIAEoCRINCgVwaG9uZRgEIAEoCRIOCgZzdGF0dXMYBSABKAkSEgoKY3JlYXRlZF9hdBgGIAEoCSJfCgxMaXN0VXNlcnNSZXESDAoEcGFnZRgBIAEoBRIMCgRzaXplGAIgASgFEg4KBnNlYXJjaBgDIAEoCRIPCgdzb3J0X2J5GAQgASgJEhIKCnNvcnRfb3JkZXIYBSABKAkiVgoMTGlzdFVzZXJzUmVzEiAKBXVzZXJzGAEgAygLMhEudXNlci5Vc2VyUHJvZmlsZRIkCgpwYWdpbmF0aW9uGAIgASgLMhAudXNlci5QYWdpbmF0aW9uIkwKClBhZ2luYXRpb24SDAoEcGFnZRgBIAEoBRIMCgRzaXplGAIgASgFEg0KBXRvdGFsGAMgASgDEhMKC3RvdGFsX3BhZ2VzGAQgASgFIhgKCkdldFVzZXJSZXESCgoCaWQYASABKAkiSAoNVXBkYXRlVXNlclJlcRIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEg0KBXBob25lGAMgASgJEg4KBnN0YXR1cxgEIAEoCSIbCg1EZWxldGVVc2VyUmVxEgoKAmlkGAEgASgJIiAKDURlbGV0ZVVzZXJSZXMSDwoHbWVzc2FnZRgBIAEoCTL2BgoHVXNlckFwaRJdCghSZWdpc3RlchIRLnVzZXIuUmVnaXN0ZXJSZXEaES51c2VyLlJlZ2lzdGVyUmVzIivavBgnCgRQT1NUEhUvYXBpL3YxL2F1dGgvcmVnaXN0ZXIYASgBMgQIChA8Ek8KBUxvZ2luEg4udXNlci5Mb2dpblJlcRoOLnVzZXIuTG9naW5SZXMiJtq8GCIKBFBPU1QSEi9hcGkvdjEvYXV0aC9sb2dpbhgBMgQIChA8EmIKDFJlZnJlc2hUb2tlbhIVLnVzZXIuUmVmcmVzaFRva2VuUmVxGhUudXNlci5SZWZyZXNoVG9rZW5SZXMiJNq8GCAKBFBPU1QSFC9hcGkvdjEvYXV0aC9yZWZyZXNoIgIIARJSCgVHZXRNZRIWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eRoRLnVzZXIuVXNlclByb2ZpbGUiHtq8GBoKA0dFVBIPL2FwaS92MS9hdXRoL21lIgIIARJWCgZMb2dvdXQSFi5nb29nbGUucHJvdG9idWYuRW1wdHkaDy51c2VyLkxvZ291dFJlcyIj2rwYHwoEUE9TVBITL2FwaS92MS9hdXRoL2xvZ291dCICCAESZgoJTGlzdFVzZXJzEhIudXNlci5MaXN0VXNlcnNSZXEaEi51c2VyLkxpc3RVc2Vyc1JlcyIx2rwYLQoDR0VUEg0vYXBpL3YxL3VzZXJzIhUIARIFYWRtaW4SCnN1cGVyYWRtaW4oAhJkCgdHZXRVc2VyEhAudXNlci5HZXRVc2VyUmVxGhEudXNlci5Vc2VyUHJvZmlsZSI02rwYMAoDR0VUEhIvYXBpL3YxL3VzZXJzL3tpZH0iFQgBEgVhZG1pbhIKc3VwZXJhZG1pbhJsCgpVcGRhdGVVc2VyEhMudXNlci5VcGRhdGVVc2VyUmVxGhEudXNlci5Vc2VyUHJvZmlsZSI22rwYMgoDUFVUEhIvYXBpL3YxL3VzZXJzL3tpZH0YASIVCAESBWFkbWluEgpzdXBlcmFkbWluEm8KCkRlbGV0ZVVzZXISEy51c2VyLkRlbGV0ZVVzZXJSZXEaEy51c2VyLkRlbGV0ZVVzZXJSZXMiN9q8GDMKBkRFTEVURRISL2FwaS92MS91c2Vycy97aWR9IhUIARIFYWRtaW4SCnN1cGVyYWRtaW5CGloYdmVlbW9uL2hhbmRsZXIvZ3JwYy91c2VyYgZwcm90bzM", [file_google_protobuf_empty, file_veemon_annotations]);
+  fileDesc("Cg91c2VyL3VzZXIucHJvdG8SBHVzZXIiSwoLUmVnaXN0ZXJSZXESDQoFZW1haWwYASABKAkSEAoIcGFzc3dvcmQYAiABKAkSDAoEbmFtZRgDIAEoCRINCgVwaG9uZRgEIAEoCSI2CgtSZWdpc3RlclJlcxIKCgJpZBgBIAEoCRINCgVlbWFpbBgCIAEoCRIMCgRuYW1lGAMgASgJIisKCExvZ2luUmVxEg0KBWVtYWlsGAEgASgJEhAKCHBhc3N3b3JkGAIgASgJIjoKCExvZ2luUmVzEg0KBXRva2VuGAEgASgJEh8KBHVzZXIYAiABKAsyES51c2VyLlVzZXJQcm9maWxlIiUKDUF1dGgwTG9naW5SZXESFAoMYWNjZXNzX3Rva2VuGAEgASgJIiAKD1JlZnJlc2hUb2tlblJlcRINCgV0b2tlbhgBIAEoCSIgCg9SZWZyZXNoVG9rZW5SZXMSDQoFdG9rZW4YASABKAkiHAoJTG9nb3V0UmVzEg8KB21lc3NhZ2UYASABKAkitAIKC1VzZXJQcm9maWxlEgoKAmlkGAEgASgJEg0KBWVtYWlsGAIgASgJEgwKBG5hbWUYAyABKAkSDQoFcGhvbmUYBCABKAkSDgoGc3RhdHVzGAUgASgJEhIKCmNyZWF0ZWRfYXQYBiABKAkSEgoKYXZhdGFyX3VybBgHIAEoCRIOCgZsb2NhbGUYCCABKAkSEAoIdGltZXpvbmUYCSABKAkSFgoOZW1haWxfdmVyaWZpZWQYCiABKAgSEwoLbWZhX2VuYWJsZWQYCyABKAgSFQoNYXV0aF9wcm92aWRlchgMIAEoCRIUCgxjb21wYW55X2NvZGUYDSABKAkSDQoFcm9sZXMYDiADKAkSEwoLcGVybWlzc2lvbnMYDyADKAkSFQoNbGFzdF9sb2dpbl9hdBgQIAEoCSJfCgxMaXN0VXNlcnNSZXESDAoEcGFnZRgBIAEoBRIMCgRzaXplGAIgASgFEg4KBnNlYXJjaBgDIAEoCRIPCgdzb3J0X2J5GAQgASgJEhIKCnNvcnRfb3JkZXIYBSABKAkiVgoMTGlzdFVzZXJzUmVzEiAKBXVzZXJzGAEgAygLMhEudXNlci5Vc2VyUHJvZmlsZRIkCgpwYWdpbmF0aW9uGAIgASgLMhAudXNlci5QYWdpbmF0aW9uIkwKClBhZ2luYXRpb24SDAoEcGFnZRgBIAEoBRIMCgRzaXplGAIgASgFEg0KBXRvdGFsGAMgASgDEhMKC3RvdGFsX3BhZ2VzGAQgASgFIhgKCkdldFVzZXJSZXESCgoCaWQYASABKAkiSAoNVXBkYXRlVXNlclJlcRIKCgJpZBgBIAEoCRIMCgRuYW1lGAIgASgJEg0KBXBob25lGAMgASgJEg4KBnN0YXR1cxgEIAEoCSIbCg1EZWxldGVVc2VyUmVxEgoKAmlkGAEgASgJIiAKDURlbGV0ZVVzZXJSZXMSDwoHbWVzc2FnZRgBIAEoCTK5BwoHVXNlckFwaRJdCghSZWdpc3RlchIRLnVzZXIuUmVnaXN0ZXJSZXEaES51c2VyLlJlZ2lzdGVyUmVzIivavBgnCgRQT1NUEhUvYXBpL3YxL2F1dGgvcmVnaXN0ZXIYASgBMgQIChA8Ek8KBUxvZ2luEg4udXNlci5Mb2dpblJlcRoOLnVzZXIuTG9naW5SZXMiJtq8GCIKBFBPU1QSEi9hcGkvdjEvYXV0aC9sb2dpbhgBMgQIChA8ElkKCkF1dGgwTG9naW4SEy51c2VyLkF1dGgwTG9naW5SZXEaDi51c2VyLkxvZ2luUmVzIibavBgiCgRQT1NUEhgvYXBpL3YxL2F1dGgvYXV0aDAvbG9naW4YARJiCgxSZWZyZXNoVG9rZW4SFS51c2VyLlJlZnJlc2hUb2tlblJlcRoVLnVzZXIuUmVmcmVzaFRva2VuUmVzIiTavBggCgRQT1NUEhQvYXBpL3YxL2F1dGgvcmVmcmVzaCICCAESUgoFR2V0TWUSFi5nb29nbGUucHJvdG9idWYuRW1wdHkaES51c2VyLlVzZXJQcm9maWxlIh7avBgaCgNHRVQSDy9hcGkvdjEvYXV0aC9tZSICCAESVgoGTG9nb3V0EhYuZ29vZ2xlLnByb3RvYnVmLkVtcHR5Gg8udXNlci5Mb2dvdXRSZXMiI9q8GB8KBFBPU1QSEy9hcGkvdjEvYXV0aC9sb2dvdXQiAggBEl8KCUxpc3RVc2VycxISLnVzZXIuTGlzdFVzZXJzUmVxGhIudXNlci5MaXN0VXNlcnNSZXMiKtq8GCYKA0dFVBINL2FwaS92MS91c2VycyIOCAEaCnVzZXJzOnJlYWQoAhJdCgdHZXRVc2VyEhAudXNlci5HZXRVc2VyUmVxGhEudXNlci5Vc2VyUHJvZmlsZSIt2rwYKQoDR0VUEhIvYXBpL3YxL3VzZXJzL3tpZH0iDggBGgp1c2VyczpyZWFkEmcKClVwZGF0ZVVzZXISEy51c2VyLlVwZGF0ZVVzZXJSZXEaES51c2VyLlVzZXJQcm9maWxlIjHavBgtCgNQVVQSEi9hcGkvdjEvdXNlcnMve2lkfRgBIhAIARoMdXNlcnM6dXBkYXRlEmoKCkRlbGV0ZVVzZXISEy51c2VyLkRlbGV0ZVVzZXJSZXEaEy51c2VyLkRlbGV0ZVVzZXJSZXMiMtq8GC4KBkRFTEVURRISL2FwaS92MS91c2Vycy97aWR9IhAIARoMdXNlcnM6ZGVsZXRlQjdaNWdpdGh1Yi5jb20vNVBNLUxhYnMvdmVlbW9uL2ludGVybmFsL2hhbmRsZXIvZ3JwYy91c2VyYgZwcm90bzM", [file_google_protobuf_empty, file_veemon_annotations]);
 
 /**
  * @generated from message user.RegisterReq
@@ -119,6 +119,25 @@ export const LoginResSchema: GenMessage<LoginRes> = /*@__PURE__*/
   messageDesc(file_user_user, 3);
 
 /**
+ * @generated from message user.Auth0LoginReq
+ */
+export type Auth0LoginReq = Message<"user.Auth0LoginReq"> & {
+  /**
+   * Auth0 access token (RS256 JWT) from the Authorization Code + PKCE flow.
+   *
+   * @generated from field: string access_token = 1;
+   */
+  accessToken: string;
+};
+
+/**
+ * Describes the message user.Auth0LoginReq.
+ * Use `create(Auth0LoginReqSchema)` to create a new message.
+ */
+export const Auth0LoginReqSchema: GenMessage<Auth0LoginReq> = /*@__PURE__*/
+  messageDesc(file_user_user, 4);
+
+/**
  * @generated from message user.RefreshTokenReq
  */
 export type RefreshTokenReq = Message<"user.RefreshTokenReq"> & {
@@ -133,7 +152,7 @@ export type RefreshTokenReq = Message<"user.RefreshTokenReq"> & {
  * Use `create(RefreshTokenReqSchema)` to create a new message.
  */
 export const RefreshTokenReqSchema: GenMessage<RefreshTokenReq> = /*@__PURE__*/
-  messageDesc(file_user_user, 4);
+  messageDesc(file_user_user, 5);
 
 /**
  * @generated from message user.RefreshTokenRes
@@ -150,7 +169,7 @@ export type RefreshTokenRes = Message<"user.RefreshTokenRes"> & {
  * Use `create(RefreshTokenResSchema)` to create a new message.
  */
 export const RefreshTokenResSchema: GenMessage<RefreshTokenRes> = /*@__PURE__*/
-  messageDesc(file_user_user, 5);
+  messageDesc(file_user_user, 6);
 
 /**
  * @generated from message user.LogoutRes
@@ -167,7 +186,7 @@ export type LogoutRes = Message<"user.LogoutRes"> & {
  * Use `create(LogoutResSchema)` to create a new message.
  */
 export const LogoutResSchema: GenMessage<LogoutRes> = /*@__PURE__*/
-  messageDesc(file_user_user, 6);
+  messageDesc(file_user_user, 7);
 
 /**
  * @generated from message user.UserProfile
@@ -202,6 +221,56 @@ export type UserProfile = Message<"user.UserProfile"> & {
    * @generated from field: string created_at = 6;
    */
   createdAt: string;
+
+  /**
+   * @generated from field: string avatar_url = 7;
+   */
+  avatarUrl: string;
+
+  /**
+   * @generated from field: string locale = 8;
+   */
+  locale: string;
+
+  /**
+   * @generated from field: string timezone = 9;
+   */
+  timezone: string;
+
+  /**
+   * @generated from field: bool email_verified = 10;
+   */
+  emailVerified: boolean;
+
+  /**
+   * @generated from field: bool mfa_enabled = 11;
+   */
+  mfaEnabled: boolean;
+
+  /**
+   * @generated from field: string auth_provider = 12;
+   */
+  authProvider: string;
+
+  /**
+   * @generated from field: string company_code = 13;
+   */
+  companyCode: string;
+
+  /**
+   * @generated from field: repeated string roles = 14;
+   */
+  roles: string[];
+
+  /**
+   * @generated from field: repeated string permissions = 15;
+   */
+  permissions: string[];
+
+  /**
+   * @generated from field: string last_login_at = 16;
+   */
+  lastLoginAt: string;
 };
 
 /**
@@ -209,7 +278,7 @@ export type UserProfile = Message<"user.UserProfile"> & {
  * Use `create(UserProfileSchema)` to create a new message.
  */
 export const UserProfileSchema: GenMessage<UserProfile> = /*@__PURE__*/
-  messageDesc(file_user_user, 7);
+  messageDesc(file_user_user, 8);
 
 /**
  * @generated from message user.ListUsersReq
@@ -246,7 +315,7 @@ export type ListUsersReq = Message<"user.ListUsersReq"> & {
  * Use `create(ListUsersReqSchema)` to create a new message.
  */
 export const ListUsersReqSchema: GenMessage<ListUsersReq> = /*@__PURE__*/
-  messageDesc(file_user_user, 8);
+  messageDesc(file_user_user, 9);
 
 /**
  * @generated from message user.ListUsersRes
@@ -268,7 +337,7 @@ export type ListUsersRes = Message<"user.ListUsersRes"> & {
  * Use `create(ListUsersResSchema)` to create a new message.
  */
 export const ListUsersResSchema: GenMessage<ListUsersRes> = /*@__PURE__*/
-  messageDesc(file_user_user, 9);
+  messageDesc(file_user_user, 10);
 
 /**
  * @generated from message user.Pagination
@@ -300,7 +369,7 @@ export type Pagination = Message<"user.Pagination"> & {
  * Use `create(PaginationSchema)` to create a new message.
  */
 export const PaginationSchema: GenMessage<Pagination> = /*@__PURE__*/
-  messageDesc(file_user_user, 10);
+  messageDesc(file_user_user, 11);
 
 /**
  * @generated from message user.GetUserReq
@@ -317,7 +386,7 @@ export type GetUserReq = Message<"user.GetUserReq"> & {
  * Use `create(GetUserReqSchema)` to create a new message.
  */
 export const GetUserReqSchema: GenMessage<GetUserReq> = /*@__PURE__*/
-  messageDesc(file_user_user, 11);
+  messageDesc(file_user_user, 12);
 
 /**
  * @generated from message user.UpdateUserReq
@@ -349,7 +418,7 @@ export type UpdateUserReq = Message<"user.UpdateUserReq"> & {
  * Use `create(UpdateUserReqSchema)` to create a new message.
  */
 export const UpdateUserReqSchema: GenMessage<UpdateUserReq> = /*@__PURE__*/
-  messageDesc(file_user_user, 12);
+  messageDesc(file_user_user, 13);
 
 /**
  * @generated from message user.DeleteUserReq
@@ -366,7 +435,7 @@ export type DeleteUserReq = Message<"user.DeleteUserReq"> & {
  * Use `create(DeleteUserReqSchema)` to create a new message.
  */
 export const DeleteUserReqSchema: GenMessage<DeleteUserReq> = /*@__PURE__*/
-  messageDesc(file_user_user, 13);
+  messageDesc(file_user_user, 14);
 
 /**
  * @generated from message user.DeleteUserRes
@@ -383,7 +452,7 @@ export type DeleteUserRes = Message<"user.DeleteUserRes"> & {
  * Use `create(DeleteUserResSchema)` to create a new message.
  */
 export const DeleteUserResSchema: GenMessage<DeleteUserRes> = /*@__PURE__*/
-  messageDesc(file_user_user, 14);
+  messageDesc(file_user_user, 15);
 
 /**
  * UserApi is exposed over both gRPC and REST. The REST surface is declared
@@ -411,6 +480,16 @@ export const UserApi: GenService<{
   login: {
     methodKind: "unary";
     input: typeof LoginReqSchema;
+    output: typeof LoginResSchema;
+  },
+  /**
+   * Public — verifies an Auth0 access token and issues a first-party token.
+   *
+   * @generated from rpc user.UserApi.Auth0Login
+   */
+  auth0Login: {
+    methodKind: "unary";
+    input: typeof Auth0LoginReqSchema;
     output: typeof LoginResSchema;
   },
   /**

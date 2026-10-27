@@ -1,6 +1,6 @@
 syntax = "proto3";
 package user;
-option go_package = "veemon/handler/grpc/user";
+option go_package = "github.com/5PM-Labs/veemon/internal/handler/grpc/user";
 
 import "google/protobuf/empty.proto";
 import "veemon/annotations.proto";
@@ -27,6 +27,15 @@ service UserApi {
             path: "/api/v1/auth/login"
             body: true
             rate_limit: { max: 10 window_seconds: 60 }
+        };
+    }
+
+    // Public — verifies an Auth0 access token and issues a first-party token.
+    rpc Auth0Login(Auth0LoginReq) returns (LoginRes) {
+        option (veemon.route) = {
+            method: "POST"
+            path: "/api/v1/auth/auth0/login"
+            body: true
         };
     }
 
@@ -63,7 +72,7 @@ service UserApi {
             method: "GET"
             path: "/api/v1/users"
             response: RESPONSE_STYLE_LIST
-            auth: { required: true roles: ["admin", "superadmin"] }
+            auth: { required: true permissions: ["users:read"] }
         };
     }
 
@@ -72,7 +81,7 @@ service UserApi {
         option (veemon.route) = {
             method: "GET"
             path: "/api/v1/users/{id}"
-            auth: { required: true roles: ["admin", "superadmin"] }
+            auth: { required: true permissions: ["users:read"] }
         };
     }
 
@@ -82,7 +91,7 @@ service UserApi {
             method: "PUT"
             path: "/api/v1/users/{id}"
             body: true
-            auth: { required: true roles: ["admin", "superadmin"] }
+            auth: { required: true permissions: ["users:update"] }
         };
     }
 
@@ -91,7 +100,7 @@ service UserApi {
         option (veemon.route) = {
             method: "DELETE"
             path: "/api/v1/users/{id}"
-            auth: { required: true roles: ["admin", "superadmin"] }
+            auth: { required: true permissions: ["users:delete"] }
         };
     }
 }
@@ -119,6 +128,11 @@ message LoginRes {
     UserProfile user = 2 [json_name = "user"];
 }
 
+message Auth0LoginReq {
+    // Auth0 access token (RS256 JWT) from the Authorization Code + PKCE flow.
+    string access_token = 1 [json_name = "accessToken"];
+}
+
 message RefreshTokenReq {
     string token = 1 [json_name = "token"];
 }
@@ -138,6 +152,16 @@ message UserProfile {
     string phone = 4 [json_name = "phone"];
     string status = 5 [json_name = "status"];
     string created_at = 6 [json_name = "createdAt"];
+    string avatar_url = 7 [json_name = "avatarUrl"];
+    string locale = 8 [json_name = "locale"];
+    string timezone = 9 [json_name = "timezone"];
+    bool email_verified = 10 [json_name = "emailVerified"];
+    bool mfa_enabled = 11 [json_name = "mfaEnabled"];
+    string auth_provider = 12 [json_name = "authProvider"];
+    string company_code = 13 [json_name = "companyCode"];
+    repeated string roles = 14 [json_name = "roles"];
+    repeated string permissions = 15 [json_name = "permissions"];
+    string last_login_at = 16 [json_name = "lastLoginAt"];
 }
 
 message ListUsersReq {

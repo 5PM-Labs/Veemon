@@ -1,6 +1,6 @@
 # Common Commands
 
-Run these `make` targets from `apps/api` (or via the root `bun run *:api` scripts).
+Run these `make` targets from the repo root (or via the root `bun run *:api` scripts).
 
 ```bash
 # Run

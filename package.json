@@ -8,20 +8,23 @@
     "packages/*"
   ],
   "scripts": {
-    "proto": "make -C apps/api proto",
+    "proto": "make proto",
     "build": "bun run build:client && bun run build:web && bun run build:ai && bun run build:api",
-    "build:api": "make -C apps/api build",
+    "build:api": "make build",
     "build:client": "bun run --filter '@veemon/api-client' build",
     "build:web": "bun run --filter '@veemon/web' build",
     "build:ai": "bun run --filter '@veemon/ai' build",
     "test": "bun run test:api && bun run test:ts",
-    "test:api": "cd apps/api && go test -race ./...",
+    "test:api": "go test -race ./...",
     "test:ts": "bun run --filter '@veemon/api-client' --filter '@veemon/web' --filter '@veemon/ai' test",
     "typecheck": "bun run --filter '@veemon/api-client' --filter '@veemon/web' --filter '@veemon/ai' typecheck",
-    "dev:api": "make -C apps/api dev",
+    "dev:api": "make dev",
     "dev:web": "bun run --filter '@veemon/web' dev",
     "dev:ai": "bun run --filter '@veemon/ai' dev",
-    "dev": "concurrently -n api,web,ai -c blue,green,magenta 'bun run dev:api' 'bun run dev:web' 'bun run dev:ai'"
+    "dev": "concurrently -n api,web,ai -c blue,green,magenta 'bun run dev:api' 'bun run dev:web' 'bun run dev:ai'",
+    "lint:api": "make lint",
+    "migrate": "make migrate",
+    "seed": "make seed"
   },
   "devDependencies": {
     "concurrently": "^10.0.6",

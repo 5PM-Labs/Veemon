@@ -4,7 +4,7 @@ Every field this system stores, logs, caches, or sends belongs to exactly one
 class. The class — not the developer's judgment in the moment — decides how it
 may be handled. [compliance-soc2](compliance-soc2.md) (Confidentiality, Privacy)
 and [compliance-pdpa](compliance-pdpa.md) both build on this table. Applies to
-**every app** in the monorepo (`apps/api`, `apps/web`, `apps/ai`, `apps/mobile`).
+**every app** in the monorepo (the Go backend, `apps/web`, `apps/ai`, `apps/mobile`).
 
 ## Classes
 

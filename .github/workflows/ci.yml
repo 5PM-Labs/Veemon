@@ -6,13 +6,21 @@ on:
   pull_request:
     branches: [main, master, develop]
 
+# A new push to the same ref cancels the previous in-flight run: only the tip
+# matters, and CI minutes are finite.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 env:
   GO_VERSION: "1.26.9"
   # Pinned, not `latest`: an action release must not silently change the gate.
   GOLANGCI_LINT_VERSION: "v2.12.2"
   FLUTTER_VERSION: "3.47.7"
-  # Pinned to the version used locally (`bun --version`). Bun is the JS runtime
-  # for apps/web and apps/ai, so `latest` would move it under CI silently.
+  # Pinned to the version used locally (`bun --version`).
   BUN_VERSION: "1.4.3"
 
 jobs:
@@ -20,138 +28,138 @@ jobs:
     name: Lint (Go)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-          cache-dependency-path: |
-            apps/api/go.sum
-            packages/go-common/go.sum
+          cache-dependency-path: go.sum
 
-      - name: golangci-lint (apps/api)
-        uses: golangci/golangci-lint-action@v8
-        with:
-          version: ${{ env.GOLANGCI_LINT_VERSION }}
-          working-directory: apps/api
+      - name: gofmt (fail on diff)
+        run: |
+          out=$(gofmt -l cmd internal examples 2>&1)
+          if [ -n "$out" ]; then echo "unformatted files:"; echo "$out"; exit 1; fi
 
-      - name: golangci-lint (packages/go-common)
-        uses: golangci/golangci-lint-action@v8
-        with:
-          version: ${{ env.GOLANGCI_LINT_VERSION }}
-          working-directory: packages/go-common
-
-  test:
-    name: Test (Go)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-          cache: true
-          cache-dependency-path: |
-            apps/api/go.sum
-            packages/go-common/go.sum
-
-      - name: Download dependencies (apps/api)
-        working-directory: apps/api
-        run: go mod download
-
-      - name: Vet (apps/api)
-        working-directory: apps/api
+      - name: go vet
         run: go vet ./...
 
-      - name: Run tests (apps/api, race + coverage)
-        working-directory: apps/api
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
+
+  test:
+    name: Test (Go, race + coverage)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: go.sum
+
+      - run: go mod download
+
+      - name: Run tests
         run: go test -race -count=1 -covermode=atomic -coverprofile=coverage.out ./...
 
       - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:
           name: coverage
-          path: apps/api/coverage.out
+          path: coverage.out
           retention-days: 7
 
-      - name: Vet (packages/go-common)
-        working-directory: packages/go-common
-        run: go vet ./...
+  integration:
+    name: Integration (Postgres)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: veemon_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: "5432"
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: veemon_test
+      DB_SSL_MODE: disable
+      DB_TIMEZONE: UTC
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Run tests (packages/go-common, race)
-        working-directory: packages/go-common
-        run: go test -race -count=1 ./...
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: go.sum
+
+      # The migrations are the schema under test: apply the real ones rather
+      # than an ORM-derived schema, so a broken migration fails CI here.
+      - name: Apply migrations
+        run: go run ./cmd/migrate up
+
+      - name: Run integration tests
+        run: go test -race -count=1 -tags integration ./internal/repository/...
 
   vuln:
     name: Vulnerability Scan (Go)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-          cache-dependency-path: |
-            apps/api/go.sum
-            packages/go-common/go.sum
+          cache-dependency-path: go.sum
 
-      - name: Install govulncheck
-        run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - run: go install golang.org/x/vuln/cmd/govulncheck@latest
 
-      - name: Run govulncheck (apps/api)
-        working-directory: apps/api
-        run: govulncheck ./...
-
-      - name: Run govulncheck (packages/go-common)
-        working-directory: packages/go-common
+      - name: govulncheck
         run: govulncheck ./...
 
   vuln-js:
     name: Vulnerability Scan (JS/Bun)
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+      - run: bun install --frozen-lockfile
 
       # Single source of truth for accepted, unpatched advisories:
-      # .claude/rules/supply-chain-security.md
-      # Any advisory NOT in that list fails the build.
+      # .claude/rules/supply-chain-security.md — anything else fails.
       - name: Audit JS dependencies
         run: bun audit --ignore=GHSA-vfj7-8cjw-p6xm
 
   build:
     name: Build (Go)
     runs-on: ubuntu-latest
-    needs: [lint, test, vuln]
-    defaults:
-      run:
-        working-directory: apps/api
+    needs: [lint, test, integration, vuln]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
-          cache-dependency-path: apps/api/go.sum
+          cache-dependency-path: go.sum
 
       - name: Build binaries
         run: |
@@ -163,7 +171,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: binaries
-          path: apps/api/bin/
+          path: bin/
           retention-days: 7
 
   frontend:
@@ -171,28 +179,20 @@ jobs:
     runs-on: ubuntu-latest
     needs: [vuln-js]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+      - run: bun install --frozen-lockfile
 
       - name: Build api-client (types consumed by web + ai)
         run: bun run build:client
 
-      - name: Typecheck
-        run: bun run typecheck
-
-      - name: Test
-        run: bun run test:ts
-
-      - name: Build web (browser bundle)
-        run: bun run build:web
+      - run: bun run typecheck
+      - run: bun run test:ts
+      - run: bun run build:web
 
   mobile:
     name: Mobile (Flutter)
@@ -201,72 +201,19 @@ jobs:
       run:
         working-directory: apps/mobile
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
-      - name: Generate code (l10n + build_runner)
-        run: make gen
+      - run: make gen
+      - run: make format-check
+      - run: make analyze
+      - run: make test
 
-      - name: Format check
-        run: make format-check
-
-      - name: Analyze (zero issues)
-        run: make analyze
-
-      - name: Test
-        run: make test
-
-  docker:
-    name: Docker Build
-    runs-on: ubuntu-latest
-    needs: [build]
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      # Push only on branch pushes to main/master; on PRs, build to validate the
-      # Dockerfile without publishing.
-      - name: Login to GitHub Container Registry
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=ref,event=branch
-            type=sha,prefix=
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          # Repo root, not ./apps/api: apps/api/go.mod has a local `replace`
-          # onto ../../packages/go-common, which must be inside the build
-          # context for the Dockerfile to COPY it (see apps/api/Dockerfile).
-          context: .
-          file: apps/api/Dockerfile
-          push: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+  # Docker images are NOT built on every push (they are slow and the binaries
+  # are already validated by `build`). Use the manual "Docker" workflow
+  # (.github/workflows/docker.yml) when an image is needed.

@@ -2,12 +2,12 @@
 
 The Go equivalent of the "while-coding" observability checklist: what to log
 (and what not to), what shape a log takes, and what actually deserves a metric
-or a manual span. Logging is [`veemon-common/logging`](../../packages/go-common/logging)
+or a manual span. Logging is [`internal/logging`](../../internal/infra/logging)
 (Zap); tracing is automatic per-request via
-[`internal/pkg/middleware/tracing.go`](../../apps/api/internal/pkg/middleware/tracing.go) + gorm's
+[`internal/pkg/middleware/tracing.go`](../../internal/pkg/middleware/tracing.go) + gorm's
 OTel plugin + `otelgrpc`; metrics are Prometheus via
-[`veemon-common/monitoring/metrics`](../../packages/go-common/monitoring/metrics).
-Paths below are relative to `apps/api/` unless prefixed `packages/`.
+[`internal/monitoring/metrics`](../../internal/infra/monitoring/metrics).
+Paths below are relative to the repo root.
 
 ## TL;DR
 
@@ -16,12 +16,12 @@ yourself. When writing code:
 
 1. Log through `logging.*` / `logger.WithContext(ctx)` — never `fmt.Println`/`log.Print`.
 2. Log **sparingly** — lifecycle + outcomes, not narration or per-item chatter.
-3. Add a **metric** to `packages/go-common/monitoring/metrics` only for a real
+3. Add a **metric** to `internal/infra/monitoring/metrics` only for a real
    domain outcome worth counting — not per-function.
 
 ## Logging — use the wrapper
 
-- Use `veemon-common/logging` — package-level `logging.Info/Warn/Error/Debug/With(...)`,
+- Use `internal/logging` — package-level `logging.Info/Warn/Error/Debug/With(...)`,
   or `logger.WithContext(ctx)` on an injected `*logging.Logger` (adds `trace_id`/`span_id`
   when a span is active, via `internal/pkg/logger`'s OTel integration). Never `fmt.Println`,
   `log.Print`, or writing straight to `os.Stdout`.
@@ -65,7 +65,7 @@ logging.Error(fmt.Sprintf("failed to create user %s: %v", email, err))
 
 ## Metrics — only for a real domain outcome
 
-- Predefined in `packages/go-common/monitoring/metrics` (the `Metrics` struct) — HTTP,
+- Predefined in `internal/infra/monitoring/metrics` (the `Metrics` struct) — HTTP,
   business, DB, cache, queue, and circuit-breaker families are already registered there.
   Add a new metric to that struct rather than calling `promauto` inline elsewhere, so
   everything stays on the one `*prometheus.Registry` served at `/metrics`.
@@ -105,5 +105,5 @@ attached to the HTTP span as the `request.id` attribute (`tracing.go`), and logg
 
 - `fmt.Println("user", id, "registered")` → `logging.Info("user registered", zap.String("user_id", id))`
 - A one-off `prometheus.NewCounter(...)` inside a handler → add the counter to
-  `packages/go-common/monitoring/metrics/metrics.go`'s `Metrics` struct instead, so it's on
+  `internal/infra/monitoring/metrics/metrics.go`'s `Metrics` struct instead, so it's on
   the shared registry and the `/metrics` endpoint.

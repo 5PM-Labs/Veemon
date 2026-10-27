@@ -4,7 +4,7 @@ SOC 2 is an attestation against the AICPA **Trust Services Criteria (TSC)**. The
 auditor does not read our code; they test whether **controls exist and operate
 continuously** and ask for **evidence**. This rule lists the controls that live
 in the codebase and the delivery pipeline, so every change keeps them working.
-Applies to all apps; Go examples target `apps/api`.
+Applies to all apps; Go examples target the root Go module.
 
 > Type I = controls designed correctly at a point in time. Type II = controls
 > *operated* over a period (usually 6–12 months). Assume **Type II**: a control
@@ -68,7 +68,7 @@ ERROR + metric, never silently dropped.
 
 - **Monitoring/alerting:** 5xx rate, auth-failure spikes, lockout spikes,
   circuit-breaker opens, and queue backlog have alerts (metrics in
-  `packages/go-common/monitoring/metrics`).
+  `internal/infra/monitoring/metrics`).
 - **Incident response:** a security incident follows the runbook (triage →
   contain → eradicate → recover → post-mortem). If personal data is involved,
   the PDPA breach clock starts at assessment — see

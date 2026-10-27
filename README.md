@@ -28,11 +28,11 @@ flowchart LR
     proto["user/user.proto<br/>veemon/annotations.proto"]
   end
 
-  buf["buf generate<br/>(make -C apps/api proto)"]
+  buf["buf generate<br/>(make proto)"]
 
   subgraph gen["generated — never hand-edited"]
-    fiber["Fiber routes + auth policy<br/>apps/api/handler/grpc/user/user_fiber.pb.go"]
-    grpc["gRPC stubs<br/>apps/api/handler/grpc/user/user_grpc.pb.go"]
+    fiber["Fiber routes + auth policy<br/>internal/handler/grpc/user/user_fiber.pb.go"]
+    grpc["gRPC stubs<br/>internal/handler/grpc/user/user_grpc.pb.go"]
     ts["TypeScript types<br/>packages/api-client/src/gen"]
   end
 
@@ -61,21 +61,24 @@ flowchart LR
 
 ```text
 veemon/
+├── cmd/               server · worker · migrate · protoc-gen-fiber entry points
+├── internal/          Go backend: config (composition root), handler, usecase,
+│                      repository, domain, infra, pkg, docs
+├── migrations/        golang-migrate SQL (schema source of truth)
 ├── apps/
-│   ├── api/           Go backend — Fiber REST + gRPC, fx DI, cmd/{server,worker,migrate}
 │   ├── web/           React 19 + Vite 8 + Tauri v2 desktop shell
 │   ├── ai/            LangGraph.js agent + workflow service (Hono, Awilix DI)
 │   └── mobile/        Flutter client — Clean Architecture, Cubit, Either<Failure,T>
 ├── packages/
 │   ├── api-client/    @veemon/api-client — protobuf-es types + typed fetch client
-│   ├── tsconfig/      @veemon/tsconfig — shared base tsconfig
-│   └── go-common/     veemon-common — logging, monitoring, infra/{database,redis,rabbitmq,resilience}
+│   └── tsconfig/      @veemon/tsconfig — shared base tsconfig
 ├── contract/
 │   ├── user/          user.proto — services, messages, veemon.route annotations
 │   └── veemon/        annotations.proto — the custom veemon.route extension
 ├── docs/assets/       Brand assets (veemon-logo.svg)
 ├── docker-compose.yml Postgres, Redis, RabbitMQ, Jaeger + one-shot migrate
 ├── buf.gen.yaml       Codegen config: Go, gRPC, protoc-gen-fiber, protobuf-es
+├── go.mod             single Go module (root) — one build for the whole backend
 └── package.json       Bun workspaces + root scripts
 ```
 
@@ -97,12 +100,12 @@ Common prerequisites: Docker (for Postgres/Redis/RabbitMQ), Bun, Go 1.26.9, and 
 git clone https://github.com/Solvr-Asia/go-grst-boilerplate.git
 cd go-grst-boilerplate
 
-cp apps/api/.env.example apps/api/.env       # no .env.example at the repo root
+cp .env.example .env
 docker compose up -d postgres redis rabbitmq jaeger
 
-make -C apps/api proto                       # generate routes, stubs, TS types
-make -C apps/api migrate-up                  # golang-migrate applies SQL migrations
-make -C apps/api run                         # REST on :3000, gRPC on :50051
+make proto                                   # generate routes, stubs, TS types
+make migrate-up                              # golang-migrate applies SQL migrations
+make run                                     # REST on :3000, gRPC on :50051
 ```
 
 ### Full stack
@@ -113,7 +116,7 @@ cp apps/web/.env.example apps/web/.env
 cp apps/ai/.env.example  apps/ai/.env        # needs ANTHROPIC_API_KEY to run agents
 
 docker compose up -d postgres redis rabbitmq jaeger
-make -C apps/api migrate-up
+make migrate-up
 
 bun run proto                                # buf codegen (Go + TS)
 bun run dev                                  # api :3000 + web :5173 + ai :4111
@@ -141,21 +144,21 @@ lefthook install           # writes .git/hooks/{pre-commit,pre-push}
 | Hook | Runs | Skipped when |
 |---|---|---|
 | `pre-commit` | `gofmt` on staged Go, `dart format` on staged Dart, `bun run typecheck` | no matching staged files; `dart` not installed |
-| `pre-push` | `go vet` + `go test` in `apps/api` and `packages/go-common` | no matching pushed files |
+| `pre-push` | `go vet` + `go test` | no matching pushed files |
 
 Bypass one run with `LEFTHOOK=0 git commit ...`. Heavy checks (`-race`, lint,
 Flutter analyze) intentionally live only in CI.
 
-Per-app details: [apps/api/README.md](apps/api/README.md), [apps/web/README.md](apps/web/README.md),
+Per-app details: [docs/backend.md](docs/backend.md), [apps/web/README.md](apps/web/README.md),
 [apps/ai/README.md](apps/ai/README.md), [apps/mobile/README.md](apps/mobile/README.md).
 
 ## Tech Stack
 
-| | Go backend (`apps/api`) | Web (`apps/web`) | AI (`apps/ai`) | Mobile (`apps/mobile`) | Contract + infra |
+| | Go backend (`internal/`, `cmd/`) | Web (`apps/web`) | AI (`apps/ai`) | Mobile (`apps/mobile`) | Contract + infra |
 |---|---|---|---|---|---|
 | Language | Go 1.26.9 | TypeScript 7 | TypeScript 7 | Dart (Flutter 3.47) | Protobuf 3 |
 | Runtime / framework | Fiber v3.6 + gRPC 1.84 | React 19.3 + Vite 8.3 | Hono 4.13 + Bun | Flutter / Material | buf codegen |
-| Key libs | GORM 1.31, fx 1.24, Zap 1.28, go-paseto 1.6, OTel 1.47 | TanStack Router + Query, Tauri CLI 2.12 | LangGraph.js, `@langchain/anthropic`, Awilix, Zod | bloc, get_it, fpdart, freezed, dio, go_router | protoc-gen-fiber, protobuf-es 2.2, PostgreSQL 15, Redis 7, RabbitMQ 3, Jaeger 1.53 |
+| Key libs | pgx 5, fx 1.24, Zap 1.28, go-paseto 1.6, OTel 1.47 | TanStack Router + Query, Tauri CLI 2.12 | LangGraph.js, `@langchain/anthropic`, Awilix, Zod | bloc, get_it, fpdart, freezed, dio, go_router | protoc-gen-fiber, protobuf-es 2.2, PostgreSQL 15, Redis 7, RabbitMQ 3, Jaeger 1.53 |
 
 ## Feature Highlights
 
@@ -214,16 +217,16 @@ rpc ListPosts(ListPostsReq) returns (ListPostsRes) {
 Then regenerate and implement:
 
 ```bash
-bun run proto          # or: make -C apps/api proto
+bun run proto          # or: make proto
 ```
 
 Codegen writes four files you should never edit by hand:
-`apps/api/handler/grpc/user/user.pb.go`, `.../user_grpc.pb.go`, `.../user_fiber.pb.go`
+`internal/handler/grpc/user/user.pb.go`, `.../user_grpc.pb.go`, `.../user_fiber.pb.go`
 (Fiber routes, auth policy, rate limits), and `packages/api-client/src/gen/user/user_pb.ts`.
 
 Implement the method on the service; auth, rate limiting, request binding, and the response
 envelope come from the generated route. Full option reference:
-[apps/api/README.md](apps/api/README.md).
+[.claude/rules/architecture.md](.claude/rules/architecture.md).
 
 ## Commands
 
@@ -241,17 +244,17 @@ Run from the repo root.
 | `bun run dev:ai` | LangGraph.js service on Hono, port 4111 |
 
 The backend also has a full `make` interface — migrations, seeds, Docker, and release
-targets. See [apps/api/README.md](apps/api/README.md) for the Makefile reference and the
+targets. See [docs/backend.md](docs/backend.md) for the Makefile reference and the
 Go-level manual.
 
 ## Infrastructure & Observability
 
-`docker compose` brings up the dependency stack; `make -C apps/api compose-up` also starts
+`docker compose` brings up the dependency stack; `make compose-up` also starts
 the app, running migrations to completion first.
 
 | Service | Image | Host ports |
 |---|---|---|
-| app | built from `apps/api/Dockerfile` | `3000` REST, `50051` gRPC |
+| app | built from the root `Dockerfile` | `3000` REST, `50051` gRPC |
 | postgres | `postgres:15-alpine` | `5432` |
 | redis | `redis:7-alpine` | `6379` |
 | rabbitmq | `rabbitmq:3-management-alpine` | `5672` AMQP, `15672` management |

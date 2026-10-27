@@ -1,6 +1,6 @@
 ---
 name: proto-routes
-description: Add or change a REST/gRPC endpoint in the Go backend by editing the proto contract and regenerating Fiber routes. Use whenever a task needs a new route, a changed path/method, an auth-policy change, or a rate-limit tweak in apps/api.
+description: Add or change a REST/gRPC endpoint in the Go backend by editing the proto contract and regenerating Fiber routes. Use whenever a task needs a new route, a changed path/method, an auth-policy change, or a rate-limit tweak in the Go backend.
 ---
 
 # Declaring routes in proto (protoc-gen-fiber)
@@ -40,7 +40,7 @@ Method, path, binding, auth policy, and rate limits all live in the contract.
 
 2. **Regenerate.** Run `make proto` (or `bun run proto` from the repo root). This
    runs `protoc-gen-go` / `-go-grpc` / `-fiber` via buf and emits
-   `apps/api/handler/grpc/<svc>/<svc>_fiber.pb.go` containing:
+   `internal/handler/grpc/<svc>/<svc>_fiber.pb.go` containing:
    - `Register<Svc>Routes(router, srv, validator)` — wires every route onto Fiber,
      applying auth middleware + rate limiters, binding path params (`{id}` → `:id`),
      query params (for `GET`), and JSON body, then writing the response.
